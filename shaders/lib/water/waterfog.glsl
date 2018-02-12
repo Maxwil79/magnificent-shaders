@@ -25,23 +25,6 @@ vec3 waterFog(vec3 color, float dist) {
 }
 
 // Volumetric Water Fog
-
-//#define WiP_SwampWater //Looks weird right now.
-
-#ifndef WiP_SwampWater
-const vec3 scoeff = vec3(0.0000, 0.01, 0.01) * 4.25;
-const vec3 acoeff = vec3(1.35, 0.07, 0.03) * 5.5;
-#else
-const vec3 scoeff = vec3(0.0004, 1.5, 0.0003) * 0.25;
-const vec3 acoeff = vec3(14.02, 0.03, 0.08) * 650.0;
-#endif
-
-vec3 waterFogShadow(float dist) {
-    vec3 attenCoeff = scoeff + acoeff;
-
-    return exp(-attenCoeff * clamp(dist, 0.0, 4e12));
-}
-
 float pow2(in float n)  { return n * n; }
 
 vec3 waterFogAmbient(float dist, vec3 lightColor, vec3 attenCoeff) {
@@ -78,8 +61,6 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 8.0;
     vec3 skylightColor = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) / (FogSteps);
 
-    float dist = length(end - start) * 0.05;
-
 	vec3 rayVec  = end - start;
 	     rayVec /= FogSteps;
 	float stepSize = length(rayVec);
@@ -113,16 +94,19 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
         float tex0 = texture(shadowtex0, shadowPos.st).r;
-        float shadowOpaque = float(tex0 > shadowPos.p - 0.00009);
-        float shadowTransparent = float(texture(shadowtex1, shadowPos.st).r > shadowPos.p - 0.00009);
+        float tex1 = texture(shadowtex1, shadowPos.st).r;
+        float shadowOpaque = float(tex0 > shadowPos.p - 0.00003);
+        float shadowTransparent = float(tex1 > shadowPos.p - 0.00003);
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
-        /*
+
+        #ifdef WaterShadowEnable
         float shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
         vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
         float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
 
         if(waterShadowCast == 1.0) shadow *= waterShadow;
-    */
+        #endif
+
         scattered += (shadow + skylightContribution) * transmittance;
         transmittance *= exp(-attenCoeff * (stepSize));
     } scattered *= scoeff;

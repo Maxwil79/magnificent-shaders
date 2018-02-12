@@ -1,6 +1,6 @@
 #version 450
 
-//#define VolumetricFog //Enable this for VL
+//#define VolumetricFog //Enable this for VL. Not for gameplay.
 
 /*DRAWBUFFERS: 03*/
 layout (location = 0) out vec4 color;

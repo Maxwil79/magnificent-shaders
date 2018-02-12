@@ -38,6 +38,7 @@ uniform sampler2D colortex5;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
+uniform sampler2D shadowcolor1;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
@@ -100,6 +101,8 @@ vec3 blackbody(float t){
 #include "dither.glsl"
 
 #include "lib/decode.glsl"
+
+#include "lib/water/waterShadow.glsl"
 
 #include "lib/raysphereIntersections/raysphereIntersection.glsl"
 #include "lib/atmosphere/physicalAtmosphere.glsl"

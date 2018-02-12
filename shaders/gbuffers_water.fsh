@@ -114,8 +114,8 @@ float getWaves(in vec3 position)
 	return waves;
 }
 
-#define ParallaxWaveSamples 16 //[16 32 64 96 128 256 512 1024] 
-#define PARALLAX_DEPTH 1.75
+#define ParallaxWaveSamples 16 //[16 32 64 96 128 256 512 1024] Turn this up to extend the distance of the parallax waves. 
+#define PARALLAX_DEPTH 2.75
 
 vec3 parallax_calculateCoordinate(vec3 inPosition, vec3 viewVector) {
 	viewVector = normalize(viewVector);

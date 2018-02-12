@@ -79,6 +79,8 @@ vec3 blackbody(float t){
 
 #include "lib/decode.glsl"
 
+#include "lib/water/waterShadow.glsl"
+
 #include "lib/raysphereIntersections/raysphereIntersection.glsl"
 #include "lib/atmosphere/physicalAtmosphere.glsl"
 

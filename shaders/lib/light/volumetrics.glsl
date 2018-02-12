@@ -61,12 +61,20 @@ vec4 VL(vec3 viewVector) {
             vec3 shadow = mix(vec3(shadowOpaque), shadowColor, float(shadowTransparent > shadowOpaque));
             shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
 
+            #ifdef WaterShadowEnable
+            float shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
+            vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
+            float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
+
+            if(waterShadowCast == 1.0) shadow *= waterShadow;
+            #endif
+
             result += vec4(shadow * lengthOfIncrement * groundFog(worldCurPos.xyz), 1.0) * vec4(lightColor, 1.0);
     }
 
 	float VoL   = dot(viewVector, lightVector);
 	float rayleigh = rayleighPhase(VoL);
-    float mie = miePhase(VoL, 0.5);
+    float mie = phaseM_CS(VoL, mieG);
 
     return 30.0 * result * vec4(mie + rayleigh);
 }

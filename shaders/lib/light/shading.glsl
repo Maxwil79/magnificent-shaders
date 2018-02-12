@@ -155,6 +155,14 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaqu
     #include "shadows/soft.glsl"
     #endif
 
+    #ifdef WaterShadowEnable
+    float shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
+    vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
+    float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
+
+    if(waterShadowCast == 1.0) shadows *= waterShadow;
+    #endif
+
     vec3 normal = decodeNormal3x16(texture(colortex4, textureCoordinate.st).g) * mat3(gbufferModelView);
 
     float shadowCast = float(texture(shadowtex0, shadowPos.st).r);
@@ -170,7 +178,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaqu
     if(id == 51.0) diffuse = 1.0;
     if(id == 18.0 || id == 31.0 || id == 38.0 || id == 59.0 || id == 80.0 || id == 106.0 || id == 141.0 || id == 142.0 || id == 161.0 || id == 175.0 || id == 207.0) diffuse = 1.0;
 
-    if(diffuse == max(0.0, NdotL) && shadowCast == 1.0) shadows = vec3(1.0);
+    //if(diffuse == max(0.0, NdotL) && shadowCast == 1.0) shadows = vec3(1.0);
 
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
 
