@@ -1,4 +1,4 @@
-//#define WiP_SwampWater //Looks weird right now.
+//#define WiP_SwampWater //Looks very weird right now.
 //#define WaterShadowEnable //Enables a water shadow. Takes a bit of FPS away.
 
 #ifndef WiP_SwampWater

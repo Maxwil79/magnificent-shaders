@@ -4,7 +4,7 @@ const float atmosphereHeight = 200e3;
 const float sunIlluminanceValue = 1.14e4;
 
 const vec3 sunColor  = blackbody(5778.0) * sunIlluminanceValue;
-const vec3 moonColor = sunColor * 15e-11;
+const vec3 moonColor = sunColor * 1e-10;
 
 const vec3 rayleighScatteringCoefficient = vec3(5.8e-6  , 1.35e-5 , 3.31e-5 );
 const vec3      mieScatteringCoefficient = vec3(2.1e-5); //Good default

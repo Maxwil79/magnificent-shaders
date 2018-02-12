@@ -58,7 +58,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     const vec3 attenCoeff = acoeff + scoeff;
 
     vec3 lightColor = vec3(0.0);
-    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 8.0;
+    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 4.0;
     vec3 skylightColor = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) / (FogSteps);
 
 	vec3 rayVec  = end - start;
