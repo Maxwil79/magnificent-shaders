@@ -41,22 +41,6 @@ float waterNoise(vec2 coord) {
 		return dot(samples, weights.yxxy * weights.zzww);
 }
 
-float hash2(vec2 p) {
-	vec3 p3  = fract(vec3(p.xyx) * 0.2031);
-	p3 += dot(p3, p3.yzx + 19.19);
-	return fract((p3.x + p3.y) * p3.z);
-}
-
-float noise4(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	vec2 u = f*f*(3.0-2.0*f);
-	return -1.0 + 2.0 * mix(
-		mix(hash2(i),                 hash2(i + vec2(1.0,0.0)), u.x),
-		mix(hash2(i + vec2(0.0,1.0)), hash2(i + vec2(1.0,1.0)), u.x),
-	u.y);
-}
-
 float getWaves(in vec3 position)
 {
 	const uint numWaves = 4;
