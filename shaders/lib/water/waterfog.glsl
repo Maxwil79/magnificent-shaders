@@ -58,7 +58,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     const vec3 attenCoeff = acoeff + scoeff;
 
     vec3 lightColor = vec3(0.0);
-    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 2.0;
+    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 3.5;
     vec3 skylightColor = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) / (FogSteps);
 
 	vec3 rayVec  = end - start;
@@ -88,7 +88,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     increment = mat3(shadowMatrix) * increment;
     vec4 curPos = vec4(start, 1.0);
     float lengthOfIncrement = length(increment);
-    vec3 sunlightConribution = lightColor * waterPhase;
+    vec3 sunlightConribution = lightColor;
     vec3 skylightContribution = vec3(0.0);
     for (int i = 0; i < FogSteps; i++) {
         curPos.xyz += increment;
@@ -108,9 +108,9 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
-        transmittance *= exp(-(attenCoeff * 14.0) * (stepSize));
+        transmittance *= exp(-(attenCoeff * 11.0) * (stepSize));
     } scattered *= scoeff;
-    scattered *= (1.0 - exp(-(attenCoeff * 14.0) * (stepSize))) / (attenCoeff * 14.0);
+    scattered *= (1.0 - exp(-(attenCoeff * 11.0) * (stepSize))) / (attenCoeff * 11.0);
 
     return color * transmittance + scattered;
 }
