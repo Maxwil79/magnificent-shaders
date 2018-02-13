@@ -58,7 +58,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     const vec3 attenCoeff = acoeff + scoeff;
 
     vec3 lightColor = vec3(0.0);
-    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 4.0;
+    lightColor = vec3(atmosphereTransmittance(sunVector, upVector, moonVector)) / 2.0;
     vec3 skylightColor = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) / (FogSteps);
 
 	vec3 rayVec  = end - start;
@@ -73,7 +73,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 	float rayleigh = rayleighPhase(VoL);
     float mie = miePhase(VoL, 0.5);
     float isotropicPhase = 0.25 / pi;
-    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(start), lightVector)), 3.23, 1.24) * 0.3;
+    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(start), lightVector)), 4.25, 1.01) * 0.3;
 
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;
@@ -88,7 +88,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     increment = mat3(shadowMatrix) * increment;
     vec4 curPos = vec4(start, 1.0);
     float lengthOfIncrement = length(increment);
-    vec3 sunlightConribution = lightColor;
+    vec3 sunlightConribution = lightColor * waterPhase;
     vec3 skylightContribution = vec3(0.0);
     for (int i = 0; i < FogSteps; i++) {
         curPos.xyz += increment;
@@ -108,9 +108,9 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
-        transmittance *= exp(-attenCoeff * (stepSize));
+        transmittance *= exp(-(attenCoeff * 14.0) * (stepSize));
     } scattered *= scoeff;
-    scattered *= (1.0 - exp(-attenCoeff * (stepSize))) / attenCoeff;
+    scattered *= (1.0 - exp(-(attenCoeff * 14.0) * (stepSize))) / (attenCoeff * 14.0);
 
     return color * transmittance + scattered;
 }
