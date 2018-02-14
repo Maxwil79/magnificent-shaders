@@ -6,7 +6,7 @@
 layout (location = 0) out vec4 color;
 
 /*
-const int colortex0Format = RGBA32F;
+const int colortex0Format = RGBA16F;
 const int colortex1Format = RGBA32F;
 const int colortex2Format = RGBA32F;
 const int colortex3Format = RGBA32F;

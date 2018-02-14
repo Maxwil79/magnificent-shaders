@@ -1,10 +1,14 @@
 #version 420 compatibility
 
+#define PlayerShadow //Disable this ti disable the player shadow.
+
 layout (location = 0) in vec4 inPosition;
 layout (location = 8) in vec4 inTexCoord;
 layout (location = 10) in vec4 mc_Entity;
 
 uniform mat4  shadowProjection; 
+
+uniform int entityId;
 
 out vec2 uvcoord;
 
@@ -26,6 +30,13 @@ void main() {
     // Is a fire vertex
     gl_Position = vec4(0.0);
     }
+
+    #ifndef PlayerShadow
+    if (mc_Entity.x == 0 && entityId == -1) {
+    // Is a player vertex
+    gl_Position = vec4(0.0);
+    }
+    #endif
 
     isWater = 0.0;
     if(mc_Entity.x == 8.0 || mc_Entity.x == 9.0) isWater = 1.0;

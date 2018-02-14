@@ -107,7 +107,7 @@ vec4 diffractionSpikes (vec4 result) {
     return pow(result, vec4(6.5));
 }
 
-vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(4.75 / 6.5);
+vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.75 / 6.5);
 
 const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 

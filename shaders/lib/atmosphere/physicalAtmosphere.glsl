@@ -202,7 +202,7 @@ vec3 get_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 upVec
 
 vec3 get_atmosphere_ambient(vec3 background, vec3 viewVector, vec3 sunVector, vec3 upVector, in vec3 moonVector){
 	#if AtmosphereMode == 0
-	vec3 atmos = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) * 0.075;
+	vec3 atmos = physicalAtmosphere(vec3(0.0), vec3(0.0), sunVector, upVector, skyQuality_I, skyQuality_J, moonVector) * 0.25;
 	#elif AtmosphereMode == 1
 	vec3 atmos = js_sunAmbient(upVector);
 	#endif
