@@ -130,8 +130,6 @@ const vec2[36] offset = vec2[36](
         vec2( 0.45471010, -0.78973980)
 );
 
-vec3 blockLightColor = 0.0005 * blackbody(3450);
-
 vec3 ScreenSpaceShadows() {
     vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture2D(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
     viewPosition /= viewPosition.w;

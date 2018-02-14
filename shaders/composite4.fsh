@@ -123,7 +123,7 @@ void main() {
     bloomResult += bloom(4.0, (textureCoordinate - vec2(0.645, 0.26)) * 16.0);
 
     float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, lumacoeff);
-    float exposure = clamp(2.35 / averageBrightness, 0.95, 1.55e5);
+    float exposure = clamp(2.35 / averageBrightness, 0.95, 7e2);
 	exposure = mix(texture(colortex7, vec2(0.5)).r, exposure, frameTime / (mix(2.5, 0.25, float(exposure < texture(colortex7, vec2(0.5)).r)) + frameTime));
 
     smoothExposure = exposure;

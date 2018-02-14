@@ -4,11 +4,11 @@ const float atmosphereHeight = 200e3;
 const float sunIlluminanceValue = 1.14e4;
 
 const vec3 sunColor  = blackbody(5778.0) * sunIlluminanceValue;
-const vec3 moonColor = sunColor * 1e-10;
+const vec3 moonColor = sunColor * 1e-7;
 
 const vec3 rayleighScatteringCoefficient = vec3(5.8e-6  , 1.35e-5 , 3.31e-5 );
 const vec3      mieScatteringCoefficient = vec3(2.1e-5); //Good default
-const vec3 ozoneCoeff    = (vec3(6.426, 8.298, .356) * 6e-5 / 100.);
+const vec3 ozoneCoeff    = (vec3(12.426, 8.298, .356) * 6e-5 / 100.);
 const float ozoneMult = 1.;
 
 const vec3 rayleighTransmittanceCoefficient = rayleighScatteringCoefficient + ozoneCoeff * ozoneMult;
