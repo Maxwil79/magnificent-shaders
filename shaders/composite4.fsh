@@ -1,4 +1,4 @@
-#version 450
+#version 420
 
 #define BloomRange 4 //[2 4 6 8 16 32 64] Higher means more quality but lower FPS.
 #define ApertureBladeCount 8 //[2 3 4 5 6 7 8] Controls the amount of aperture blades.

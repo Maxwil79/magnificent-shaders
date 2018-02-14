@@ -1,4 +1,4 @@
-#version 450 compatibility
+#version 420 compatibility
 
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;

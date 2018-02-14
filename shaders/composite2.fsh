@@ -1,4 +1,4 @@
-#version 450
+#version 420
 
 //#define VolumetricFog //Enable this for VL. Not for gameplay.
 

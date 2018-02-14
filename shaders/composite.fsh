@@ -1,4 +1,4 @@
-#version 450
+#version 420
 
 #define ShadowType 0 //[0 1]
 

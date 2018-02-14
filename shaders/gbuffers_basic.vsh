@@ -1,4 +1,4 @@
-#version 450 compatibility
+#version 420 compatibility
 
 layout (location = 0) in vec4 inPosition;
 layout (location = 2) in vec4 inNormal;

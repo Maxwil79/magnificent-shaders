@@ -1,4 +1,4 @@
-#version 450
+#version 420
 
 #define TonemapVersion 0 //[0 1]
 
