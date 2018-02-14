@@ -14,7 +14,7 @@ const float ozoneMult = 1.;
 const vec3 rayleighTransmittanceCoefficient = rayleighScatteringCoefficient + ozoneCoeff * ozoneMult;
 const vec3      mieTransmittanceCoefficient =      mieScatteringCoefficient * 1.11;
 
-const float rayleighScaleHeight = 3.0e3; //Not accurate, done to fix sunrise and sunset.
+const float rayleighScaleHeight = 5.0e3; //Not accurate, done to fix sunrise and sunset.
 const float      mieScaleHeight = 1.8e3;
 const vec2 scaleHeights = vec2(rayleighScaleHeight, mieScaleHeight);
 

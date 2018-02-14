@@ -26,6 +26,7 @@ uniform sampler2D shadowcolor0;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
+uniform sampler2D noisetex;
 
 uniform vec3 sunPosition;
 uniform vec3 cameraPosition;

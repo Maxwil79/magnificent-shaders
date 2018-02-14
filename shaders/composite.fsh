@@ -17,7 +17,7 @@ const int colortex7Format = RGB32F;
 const float pi  = 3.14159265358979;
 
 const int   shadowMapResolution      = 1024; //[512 1024 2048 4096 8192]
-const float sunPathRotation = -40.0; //[-10.0 -15.0 -20.0 -25.0 -30.0 -35.0 -40.0 -45.0]
+const float sunPathRotation = -40.0; //[-10.0 -15.0 -20.0 -25.0 -30.0 -35.0 -40.0 -45.0 -50.0 -55.0 -60.0 -65.0] 
 
 in vec2 textureCoordinate;
 in vec3 lightVector;
