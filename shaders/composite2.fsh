@@ -105,26 +105,6 @@ vec3 clampNormal(vec3 n, vec3 v){
     return dot(n, v) >= 0.0 ? cross(cross(v, n), v) : n;
 }
 
-vec3 filterVL(vec2 coord) {
-	const float range = 2.0;
-	float refDepth = linearizeDepth(texture(depthtex2, coord).r)*100.0;
-	float refDepth2 = linearizeDepth(texture(depthtex2, coord).r)*0.5;
-
-	vec3 result = vec3(0.0);
-	float totalWeight = 0.0;
-	for (float i = -range; i <= range; i++) {
-		for (float j = -range; j <= range; j++) {
-			vec2 sampleOffset = vec2(i, j) / vec2(viewWidth, viewHeight);
-
-            float weight = max(1.0 - float(sampleOffset / range), 0.0);
-
-			result += texture(colortex3, coord + sampleOffset * 0.75).rgb * weight;
-			totalWeight += weight;
-		}
-	}
-	return result / totalWeight;
-}
-
 void main() {
     color = texture(colortex0, textureCoordinate.st);
     float depth = texture(depthtex1, textureCoordinate.st).r;

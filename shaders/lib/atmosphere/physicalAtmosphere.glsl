@@ -61,7 +61,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 	int jStepsTimes4 = stepAmountI*4; //Makes sunset/sunrise look incorrect.
 
 	vec3 sunIlluminance = sunColor; //Physically based.
-	vec3 moonIlluminance = moonColor / 5.0; //Looks nice.
+	vec3 moonIlluminance = moonColor / 22.0; //Looks nice.
 
 	//--//
 
