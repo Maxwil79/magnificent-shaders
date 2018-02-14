@@ -8,13 +8,13 @@ const vec3 moonColor = sunColor * 1e-7;
 
 const vec3 rayleighScatteringCoefficient = vec3(5.8e-6  , 1.35e-5 , 3.31e-5 );
 const vec3      mieScatteringCoefficient = vec3(2.1e-5); //Good default
-const vec3 ozoneCoeff    = (vec3(12.426, 8.298, .356) * 6e-5 / 100.);
+const vec3 ozoneCoeff    = (vec3(9.426, 8.298, .356) * 6e-5 / 100.);
 const float ozoneMult = 1.;
 
 const vec3 rayleighTransmittanceCoefficient = rayleighScatteringCoefficient + ozoneCoeff * ozoneMult;
 const vec3      mieTransmittanceCoefficient =      mieScatteringCoefficient * 1.11;
 
-const float rayleighScaleHeight = 3.2e3; //Not accurate, done to fix sunrise and sunset.
+const float rayleighScaleHeight = 3.0e3; //Not accurate, done to fix sunrise and sunset.
 const float      mieScaleHeight = 1.8e3;
 const vec2 scaleHeights = vec2(rayleighScaleHeight, mieScaleHeight);
 
