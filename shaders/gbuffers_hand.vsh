@@ -1,5 +1,9 @@
 #version 420 compatibility
 
+#define CorrectHandProjection //This makes the projection of the hand correct, this is useful because it gives access to the actual depth of the hand. Turn this off for vanilla hand projection.
+//#define HandFovOverride //Overrides the hand FOV.
+	#define HandFOV 80.0 //[10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0 110.0 120.0 130.0] 
+
 layout (location = 0) in vec4 inPosition;
 layout (location = 2) in vec4 inNormal;
 layout (location = 3) in vec4 inColor;
@@ -53,8 +57,16 @@ void main() {
 
     normals = normalize(gl_NormalMatrix * gl_Normal);
 
-	mat4 handProjection = generateProjectionMatrix(radians(80.0), aspectRatio, -near, -far);
+	#ifdef HandFovOverride
+	mat4 handProjection = generateProjectionMatrix(radians(HandFOV), aspectRatio, -near, -far);
+	#else
+	mat4 handProjection = gbufferProjection;
+	#endif
 
 	vec4 viewSpacePosition = gl_ModelViewMatrix * inPosition;
+	#ifndef CorrectHandProjection
+	gl_Position			   = ftransform();
+	#else
 	gl_Position            = handProjection     * viewSpacePosition;
+	#endif
 }

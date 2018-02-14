@@ -9,6 +9,9 @@
 
 #define RefractionMode 1 //[0 1] 0 = no waterfog, only raytraced refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet. Higher means more stable refraction, and faster, refraction. Lower means less stable, and slower, refraction.
 
+#define Torch_Temperature 3450 //[1000 1100 1150 1200 1250 1300 1350 1400 1450 1500 1550 1600 1650 1700 1750 1800 1850 1900 1950 2000 2100 2150 2200 2250 2300 2350 2400 2450 2500 2550 2600 2650 2700 2750 2800 2850 2900 2950 3000 3100 3150 3200 3250 3300 3350 3400 3450 3500 3550 3600 3650 3700 3750 3800 3850 3900 3950] A lower value gives a more red result, and can make Endermen eyes look strange.
+#define Attenuation 3.5 //[1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5] A higher value will make the torch lightmaps smaller.
+
 #define texture2D(sampler, vec2) texture(sampler, vec2)
 #define texture2DLod(sampler, vec2, float) textureLod(sampler, vec2, float)
 #define varying in

@@ -57,8 +57,12 @@ float water_fournierForandPhase(float theta, float mu, float n) {
 vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
     const vec3 attenCoeff = acoeff + scoeff;
 
+    lightmap = pow(lightmap, vec2(Attenuation, 5.0));
+    if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
+
     vec3 lightColor = vec3(0.0);
-    lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector) / 3.5;
+    lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector) / 4.5;
+    vec3 skyLightColor = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, upVector, moonVector)/3.5) * lightmap.y;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= FogSteps;
@@ -88,7 +92,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     vec4 curPos = vec4(start, 1.0);
     float lengthOfIncrement = length(increment);
     vec3 sunlightConribution = lightColor;
-    vec3 skylightContribution = vec3(0.0);
+    vec3 skylightContribution = skyLightColor;
     for (int i = 0; i < FogSteps; i++) {
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
