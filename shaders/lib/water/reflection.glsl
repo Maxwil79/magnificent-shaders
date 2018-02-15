@@ -36,7 +36,7 @@ vec3 reflection(in vec3 view) {
 
     float fresnelR = 0.0;
 
-    fresnelR = Fresnel(view.xyz, normal);
+    fresnelR = schlick;
 
     vec3 direction = reflect(normalize(viewPosition.xyz), normal);
     vec4 hitPosition;
