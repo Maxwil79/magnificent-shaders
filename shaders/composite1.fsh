@@ -169,8 +169,8 @@ vec4 Fog(vec3 viewVector) {
     return result;
 }
 
-float noonLight = 1.0;
-float horizonLight = 35.5;
+float noonLight = 8.0;
+float horizonLight = 85.5;
 float nightLight = 27.1;
 
 float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);
@@ -210,7 +210,7 @@ void main() {
     //color += Fog(normalize(view.xyz));
 
     #ifdef VolumetricFog
-    if(isEyeInWater == 0) volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), VL(normalize(view.xyz)) * vlIntensity, AccumulationStrength);
+    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), VL(normalize(view.xyz)) * vlIntensity, AccumulationStrength);
     #else
     volume = vec4(1.0);
     #endif

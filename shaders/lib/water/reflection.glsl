@@ -1,3 +1,15 @@
+float Fresnel(in vec3 viewVector, in vec3 normal) {
+    float n0 = 1.333;
+    vec3 ri = normalize(viewVector.xyz);
+    vec3 rt = refract(ri, normal, 1./n0);
+    float cti = dot(ri,normal),ctt = dot(rt,normal);
+    float fresnel = (n0*cti-ctt)/(n0*cti+ctt);
+    fresnel*=fresnel;
+    float fresnel2 = (ctt-n0*cti)/(n0*cti+ctt);
+    fresnel =.5*(fresnel+fresnel2*fresnel2);
+    return fresnel;
+}
+
 vec3 reflection(in vec3 view) {
     vec3 reflection = vec3(0.0);
     int i = 0;
@@ -24,7 +36,7 @@ vec3 reflection(in vec3 view) {
 
     float fresnelR = 0.0;
 
-    fresnelR = schlick;
+    fresnelR = Fresnel(view.xyz, normal);
 
     vec3 direction = reflect(normalize(viewPosition.xyz), normal);
     vec4 hitPosition;

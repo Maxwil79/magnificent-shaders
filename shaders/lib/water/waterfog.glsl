@@ -62,7 +62,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector) / 4.5;
-    vec3 skyLightColor = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, upVector, moonVector)/3.5) * lightmap.y;
+    vec3 skyLightColor = vec3(0.0);
 
 	vec3 rayVec  = end - start;
 	     rayVec /= FogSteps;

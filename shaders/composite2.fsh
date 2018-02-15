@@ -128,13 +128,13 @@ void main() {
     //raytracer = texture(colortex3, textureCoordinate);
 
     #ifdef VolumetricFog
-    if(isEyeInWater == 0) vl = texture(colortex3, textureCoordinate);
+    vl = texture(colortex3, textureCoordinate);
     #else
     vl = vec4(1.0);
     #endif
 
     #ifdef VolumetricFog
-    color += vl;
+    if(isEyeInWater == 0) color += vl;
     #endif
 
     //color = vec4(dot(normal, upVector) * 0.5 + 0.5);

@@ -132,6 +132,25 @@ float getCaustics(in vec3 position) {
 
 vec3 blockLightColor = 0.0035 * blackbody(Torch_Temperature);
 
+const vec2[16] diskOffset = vec2[16](
+	vec2(0.9553798f, 0.08792616f),
+	vec2(0.7564816f, 0.6107687f),
+	vec2(0.4300687f, -0.339003f),
+	vec2(0.2410402f, 0.398774f),
+	vec2(0.07018216f, -0.8776324f),
+	vec2(-0.2103648f, -0.3532368f),
+	vec2(0.8417408f, -0.5299217f),
+	vec2(0.1464538f, -0.0502334f),
+	vec2(0.5003511f, -0.7529236f),
+	vec2(-0.132682f, 0.6056585f),
+	vec2(-0.2401425f, 0.1240332f),
+	vec2(0.3478812f, 0.8243276f),
+	vec2(-0.8337253f, 0.1119805f),
+	vec2(-0.6568771f, -0.3930125f),
+	vec2(-0.6461575f, 0.7098891f),
+	vec2(-0.3569236f, -0.9252638f)
+);
+
 vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaque, in vec3 viewVector) {
 
     mat4 shadowMVP = shadowProjection * shadowModelView;

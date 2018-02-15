@@ -1,6 +1,6 @@
 #version 420
 
-#define TonemapVersion 0 //[0 1]
+#define TonemapVersion 0 //[0 1] 0 = Zombye's tonemap. 1 = Uncharted 2 tonemap.
 
 layout (location = 0) out vec4 color;
 
@@ -100,6 +100,10 @@ vec4 ps_main()
      return vec4(retColor,1);
 }
 
+vec3 tonemap(vec3 color) {
+    return color * inversesqrt(color * color + 1.0);
+}
+
 void main() {
     color = texture(colortex0, textureCoordinate.st);
     float depth = texture(depthtex1, textureCoordinate.st).r;
@@ -107,14 +111,14 @@ void main() {
 	float i = Version;
 
 	#if TonemapVersion == 0
-    color.rgb = tonemapUncharted2(color.rgb);
+    color.rgb = tonemap(color.rgb);
 	#elif TonemapVersion == 1
-	color *= ps_main();
+	color.rgb = tonemapUncharted2(color.rgb);
 	#endif
 
 	float iamfloat = 1.3;
 
-    color.rgb = adjustSaturation(color.rgb, iamfloat);
+    //color.rgb = adjustSaturation(color.rgb, iamfloat);
 
     color.rgb = linearToSRGB(color.rgb);
 
