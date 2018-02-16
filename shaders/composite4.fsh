@@ -1,9 +1,9 @@
 #version 420
 
 #define BloomRange 4 //[2 4 6 8 16 32 64] Higher means more quality but lower FPS.
-#define ApertureBladeCount 8 //[2 3 4 5 6 7 8] Controls the amount of aperture blades.
+#define ApertureBladeCount 5 //[2 3 4 5 6 7 8] Controls the amount of aperture blades.
 #define Aperture 0.8 //[0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8] Controls the size of the aperture.
-//#define DifractionSpikes
+//#define DifractionSpikes //Currently a little awkward.
 
 
 /*DRAWBUFFERS: 074*/
@@ -37,6 +37,7 @@ vec2 screenResolution = vec2(viewWidth, viewHeight);
 const float pi  = 3.14159265358979;
 
 #include "lib/texture/Bicubic.glsl"
+#include "dither.glsl"
 
 vec3 bloom(float LOD, vec2 coordinates) {
 	if (coordinates.x < 0.0 || coordinates.x > 1.0 || coordinates.y < 0.0 || coordinates.y > 1.0) return vec3(0.0);
@@ -89,12 +90,12 @@ vec3 waterFix(vec2 coord) {
 vec4 diffractionSpikes (vec4 result) {
     const int spikeSamples = 64;
     const int spikeCount = ApertureBladeCount; 
-    const float spikeSize = 2.0;
+    const float spikeSize = 1.5;
     const float angle = radians(10 + 180.0);
 
     float finalWeight = 1.0;
     for (int i = 0; i < spikeCount; i++){
-        vec2 direction = vec2(cos((2.0 * pi * float(i) / spikeCount) + angle), sin((2.0 * pi * i / spikeCount) + angle));
+        vec2 direction = vec2(cos((2.0 * pi * float(i) / spikeCount) + angle), sin((2.0 * pi * i / spikeCount) + angle)) * dither2;
         for (int j = 0; j < spikeSamples; j++){
             float weight = max(1.0 - pow(float(j) / spikeSamples, 0.00695), 0.0);
             //weight = (1.0 - weight) / (0.00695 * weight * weight);
@@ -123,7 +124,7 @@ void main() {
     bloomResult += bloom(4.0, (textureCoordinate - vec2(0.645, 0.26)) * 16.0);
 
     float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, lumacoeff);
-    float exposure = clamp(3.85 / averageBrightness, 0.95, 7e2);
+    float exposure = clamp(3.0 / averageBrightness, 1.5, 7e2);
 	exposure = mix(texture(colortex7, vec2(0.5)).r, exposure, frameTime / (mix(2.5, 0.25, float(exposure < texture(colortex7, vec2(0.5)).r)) + frameTime));
 
     smoothExposure = exposure;
@@ -131,12 +132,12 @@ void main() {
 
     vec3 highexposuretint = vec3(0.3, 0.8, 1.0);
     vec3 desaturateWeight = vec3(0.5, 0.6, 0.2);
-    //color.rgb = mix(color.rgb, dot(color.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 1.40e5, 0.0, 1.0));
-    //bloomPass.rgb = mix(bloomResult.rgb, dot(bloomResult.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 1.40e5, 0.0, 1.0));
+    color.rgb = mix(color.rgb, dot(color.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
+    bloomPass.rgb = mix(bloomResult.rgb, dot(bloomResult.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
 
     vec4 diffraction = diffractionSpikes(color);
     #ifdef DifractionSpikes
-    color += mix(color, diffraction, 0.2);;
+    color += mix(color, diffraction, 0.85);
     #endif
 
     color *= smoothExposure;

@@ -16,7 +16,7 @@
 #define texture2DLod(sampler, vec2, float) textureLod(sampler, vec2, float)
 #define varying in
 
-#define FogSteps 8 //[1 2 4 8 16 32 64 128 256 512 1024] Higher means higher quality but less performance.
+#define FogSteps 16 //[1 2 4 8 16 32 64 128 256 512 1024] Higher means higher quality but less performance.
 
 /*DRAWBUFFERS: 03*/
 layout (location = 0) out vec4 color;
@@ -203,11 +203,6 @@ void main() {
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);
     if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz)), 1.0);
-//    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) raytrace = mix(texture(colortex2, world.xy / world.w * 0.5 + 0.5), clamp01(vec4(reflection(normalize(view.xyz)), 1.0)) * 30.0, 0.005);
-
-//mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), VL(view.xyz) * 3.0, 0.005)
-
-    //color += Fog(normalize(view.xyz));
 
     #ifdef VolumetricFog
     volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), VL(normalize(view.xyz)) * vlIntensity, AccumulationStrength);

@@ -1,4 +1,5 @@
-float Fresnel(in vec3 viewVector, in vec3 normal) {
+float better_fresnel(in vec3 viewVector, in vec3 normal) {
+    //The code in this function was shared by stduhpf.
     float n0 = 1.333;
     vec3 ri = normalize(viewVector.xyz);
     vec3 rt = refract(ri, normal, 1./n0);
@@ -36,7 +37,7 @@ vec3 reflection(in vec3 view) {
 
     float fresnelR = 0.0;
 
-    fresnelR = schlick;
+    fresnelR = better_fresnel(view, normal);
 
     vec3 direction = reflect(normalize(viewPosition.xyz), normal);
     vec4 hitPosition;
@@ -49,7 +50,7 @@ vec3 reflection(in vec3 view) {
 
     //vec3 sun = calculateSun(sunVector, normalize(direction.xyz)) * shadows;
     vec3 moon = (moonColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, 0.08*0.08, 0.5))) * shadows;
-    vec3 specular = (atmosphereTransmittance(sunVector, upVector, moonVector) * 150.0) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.08*0.08, 0.5))) * shadows;
+    vec3 specular = (atmosphereTransmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.08*0.08, 0.5))) * shadows;
     vec3 backGround = specular + moon;
 
     reflection += pow(skyLight, 7.0) * get_atmosphere(vec3(0.0), direction, sunVector, upVector, moonVector) * fresnelR;

@@ -6,5 +6,5 @@ vec3 calculateSun(
 ) {
 	float radius = radians(SunSize);
 	float sunAngularSize = degrees(radius);
-	return step(pi - radius, acos(-dot(sunVector, viewVector))) * sunColor / 150.0;
+	return step(pi - radius, acos(-dot(sunVector, viewVector))) * sunColor;
 }

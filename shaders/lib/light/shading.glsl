@@ -130,7 +130,7 @@ float getCaustics(in vec3 position) {
 */
 #include "distortion.glsl"
 
-vec3 blockLightColor = 0.0035 * blackbody(Torch_Temperature);
+vec3 blockLightColor = 0.075 * blackbody(Torch_Temperature);
 
 const vec2[16] diskOffset = vec2[16](
 	vec2(0.9553798f, 0.08792616f),
@@ -211,7 +211,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaqu
     if (id == 10.0 || id == 11.0 || id == 51.0 || id == 89.0) {
         emission *= sqrt(dot(color.rgb, color.rgb)) / 50.0;
     } else if (id == 50.0) {
-        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 0.0005) / 50.0;
+        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 0.0005) / 10.0;
     } else if (id == 62.0 || id == 94.0 || id == 149.0) {
          emission *= max(color.r * 100.6 - 0.6, 0.0) * abs(dot(color.rgb, vec3(1.0 / 3.0)) - color.r);
     } else if (id == 76.0 || id == 213.0) {

@@ -19,7 +19,7 @@ const float SEA_FREQ = SeaFreq;
 const mat2 octave_m = mat2(1.4,1.1,-2.2,1.4);
 
 float sea_octave_micro(vec2 uv, float choppy) {
-    uv += noise4(uv);
+    uv += waterNoise(uv * noiseTextureResolution);
     vec2 wv = 1.0-abs(sin(uv));
     vec2 swv = abs(cos(uv));
     wv = mix(wv,swv,wv);

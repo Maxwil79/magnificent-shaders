@@ -118,7 +118,7 @@ void main() {
 
 	float iamfloat = 1.3;
 
-    //color.rgb = adjustSaturation(color.rgb, iamfloat);
+    color.rgb = adjustSaturation(color.rgb, iamfloat);
 
     color.rgb = linearToSRGB(color.rgb);
 
