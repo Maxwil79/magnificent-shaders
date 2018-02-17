@@ -116,7 +116,7 @@ void main() {
 	color.rgb = tonemapUncharted2(color.rgb);
 	#endif
 
-	float iamfloat = 1.3;
+	float iamfloat = 1.0;
 
     color.rgb = adjustSaturation(color.rgb, iamfloat);
 

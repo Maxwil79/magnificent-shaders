@@ -130,7 +130,7 @@ float getCaustics(in vec3 position) {
 */
 #include "distortion.glsl"
 
-vec3 blockLightColor = 0.075 * blackbody(Torch_Temperature);
+vec3 blockLightColor = 0.05 * blackbody(Torch_Temperature);
 
 const vec2[16] diskOffset = vec2[16](
 	vec2(0.9553798f, 0.08792616f),

@@ -61,7 +61,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
 
     vec3 lightColor = vec3(0.0);
-    lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector) / 4.5;
+    lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
     vec3 skyLightColor = vec3(0.0);
 
 	vec3 rayVec  = end - start;
@@ -111,9 +111,9 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
-        transmittance *= exp(-(attenCoeff * 11.0) * (stepSize));
+        transmittance *= exp(-(attenCoeff * WaterfogDensity) * (stepSize));
     } scattered *= scoeff;
-    scattered *= (1.0 - exp(-(attenCoeff * 11.0) * (stepSize))) / (attenCoeff * 11.0);
+    scattered *= (1.0 - exp(-(attenCoeff * WaterfogDensity) * (stepSize))) / (attenCoeff * WaterfogDensity);
 
     return color * transmittance + scattered;
 }

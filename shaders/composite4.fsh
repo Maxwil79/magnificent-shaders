@@ -2,8 +2,9 @@
 
 #define BloomRange 4 //[2 4 6 8 16 32 64] Higher means more quality but lower FPS.
 #define ApertureBladeCount 5 //[2 3 4 5 6 7 8] Controls the amount of aperture blades.
-#define Aperture 0.8 //[0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8] Controls the size of the aperture.
+#define Aperture 0.8 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9] Controls the size of the aperture.
 //#define DifractionSpikes //Currently a little awkward.
+//#define HighexposureTinting //Enables the high exposure tint.
 
 
 /*DRAWBUFFERS: 074*/
@@ -52,12 +53,12 @@ vec3 bloom(float LOD, vec2 coordinates) {
 	float totalWeight = 0.0;
 	for (int i = -range.x; i <= range.x; i += 1) {
 		for (int j = -range.y; j <= range.y; j += 1) {
-            vec2 offset = vec2(i, j) * 1.1;
+            vec2 offset = vec2(i, j) * dither2;
             float weight = max(1.0 - length2(offset / range), 0.0);
             offset /= resolution * 1.1;
             weight = pow(weight, 15.0);
 
-            bloomColor += textureLod(colortex0, coordinates + (offset * 1.3), LOD).rgb * weight;
+            bloomColor += textureLod(colortex0, coordinates + (offset), LOD).rgb * weight;
             totalWeight += weight;
 		}
 	}
@@ -88,9 +89,9 @@ vec3 waterFix(vec2 coord) {
 }
 
 vec4 diffractionSpikes (vec4 result) {
-    const int spikeSamples = 64;
+    const int spikeSamples = 32;
     const int spikeCount = ApertureBladeCount; 
-    const float spikeSize = 1.5;
+    const float spikeSize = Aperture;
     const float angle = radians(10 + 180.0);
 
     float finalWeight = 1.0;
@@ -105,7 +106,7 @@ vec4 diffractionSpikes (vec4 result) {
     }
     result /= finalWeight;
 
-    return pow(result, vec4(6.5));
+    return pow(result, vec4(3.5));
 }
 
 vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.75 / 6.5);
@@ -130,10 +131,12 @@ void main() {
     smoothExposure = exposure;
     bloomPass = vec4(bloomResult, 1.0);
 
-    vec3 highexposuretint = vec3(0.3, 0.8, 1.0);
-    vec3 desaturateWeight = vec3(0.5, 0.6, 0.2);
+    vec3 highexposuretint = vec3(0.5, 0.8, 1.0);
+    vec3 desaturateWeight = vec3(0.8, 0.6, 0.2);
+    #ifdef HighexposureTinting
     color.rgb = mix(color.rgb, dot(color.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
     bloomPass.rgb = mix(bloomResult.rgb, dot(bloomResult.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
+    #endif
 
     vec4 diffraction = diffractionSpikes(color);
     #ifdef DifractionSpikes

@@ -30,7 +30,7 @@ vec3 atmosphereTransmittance(vec3 sunVector, vec3 upVector, vec3 moonVector) {
 	    opticalDepth2 -= exp(-altitude2 / scaleHeights);
 	}
 	opticalDepth *= stepSize;
-	vec3 transmittance = exp(rayleighTransmittanceCoefficient * opticalDepth.x + mieTransmittanceCoefficient * opticalDepth.y);
+	vec3 transmittance = exp(rayleighTransmittanceCoefficient * opticalDepth.x + mieTransmittanceCoefficient * opticalDepth.y) * sunColor * 6e-5;
 	vec3 transmittance2 = exp(rayleighTransmittanceCoefficient * opticalDepth2.x + mieTransmittanceCoefficient * opticalDepth2.y) * moonColor / 15.0;
 	return transmittance + transmittance2;
 }
