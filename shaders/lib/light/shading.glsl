@@ -130,7 +130,7 @@ float getCaustics(in vec3 position) {
 */
 #include "distortion.glsl"
 
-vec3 blockLightColor = 0.05 * blackbody(Torch_Temperature);
+vec3 blockLightColor = 0.025 * blackbody(Torch_Temperature);
 
 const vec2[16] diskOffset = vec2[16](
 	vec2(0.9553798f, 0.08792616f),
@@ -150,6 +150,20 @@ const vec2[16] diskOffset = vec2[16](
 	vec2(-0.6461575f, 0.7098891f),
 	vec2(-0.3569236f, -0.9252638f)
 );
+
+vec3 ScreenSpaceShadows() {
+    vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture2D(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
+    viewPosition /= viewPosition.w;
+
+    vec3 lighting = vec3(0.0);
+
+    vec4 hitPosition;
+    if (!raytraceIntersection(viewPosition, lightVector, hitPosition, 64.0, 0.0, 0.0025, 1.0, 0.05)) {
+        return vec3(1.0);
+    }
+
+    return vec3(0.0);
+}
 
 vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaque, in vec3 viewVector) {
 
@@ -197,7 +211,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaqu
 
     float diffuse = max(0.0, NdotL);
     if(id == 51.0) diffuse = 1.0;
-    if(id == 18.0 || id == 31.0 || id == 38.0 || id == 59.0 || id == 80.0 || id == 106.0 || id == 141.0 || id == 142.0 || id == 161.0 || id == 175.0 || id == 207.0) diffuse = 1.0;
+    if(id == 18.0 || id == 31.0 || id == 38.0 || id == 59.0 || id == 106.0 || id == 141.0 || id == 142.0 || id == 161.0 || id == 175.0 || id == 207.0) diffuse = 1.0;
 
     //if(diffuse == max(0.0, NdotL) && shadowCast == 1.0) shadows = vec3(1.0);
 

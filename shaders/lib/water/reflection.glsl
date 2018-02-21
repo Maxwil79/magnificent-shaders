@@ -30,8 +30,6 @@ vec3 reflection(in vec3 view) {
     float roughness = RoughnessValue;
     float roughnessSquared = roughness*roughness;
 
-    //vec3 shadows = texture(colortex6, textureCoordinate.st).rgb * 0.04;
-
     for(i = 0; i < samples; i++) {
     normal = mix(clampNormal(waterNormal, view), normalize(hash33(view.xyz + i) * 2.0 - 1.0), roughnessSquared);
 
@@ -50,7 +48,7 @@ vec3 reflection(in vec3 view) {
 
     //vec3 sun = calculateSun(sunVector, normalize(direction.xyz)) * shadows;
     vec3 moon = (moonColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, 0.08*0.08, 0.5))) * shadows;
-    vec3 specular = (atmosphereTransmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.08*0.08, 0.5))) * shadows;
+    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.08*0.08, 0.5))) * shadows;
     vec3 backGround = specular + moon;
 
     reflection += pow(skyLight, 7.0) * get_atmosphere(vec3(0.0), direction, sunVector, upVector, moonVector) * fresnelR;

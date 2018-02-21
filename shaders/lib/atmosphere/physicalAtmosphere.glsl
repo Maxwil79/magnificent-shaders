@@ -60,7 +60,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 	int iStepsTimes4 = stepAmountI*4; //Makes sunset/sunrise look incorrect.
 	int jStepsTimes4 = stepAmountI*4; //Makes sunset/sunrise look incorrect.
 
-	vec3 sunIlluminance = sunColor; //Physically based.
+	vec3 sunIlluminance = sunColor; //A thing.
 	vec3 moonIlluminance = moonColor / 22.0; //Looks nice.
 
 	//--//
@@ -69,9 +69,9 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 
     vec2 atmosphereEndDistance;
     bool atmosphereIntersected = calculateRaySphereIntersection(atmosphereRadius, viewVector, viewPosition, atmosphereEndDistance);
-    if (!atmosphereIntersected) return background;
+    //if (!atmosphereIntersected) return background;
     float planetDistance;
-    bool planetIntersected = calculateRaySphereIntersection(planetRadius-700.0, viewVector, viewPosition, planetDistance);
+    bool planetIntersected = calculateRaySphereIntersection(0.0, viewVector, viewPosition, planetDistance);
 
     float iStepSize  = (planetIntersected ? planetDistance : atmosphereEndDistance.x) / iSteps;
     vec3  iIncrement = viewVector * iStepSize;
@@ -120,7 +120,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 		scatteringStep *= transmittance;
 
 		// multiply by light source luminance
-		scatteringStep *= sunIlluminance * 6e-5; //Not physically based, but keeps the atmosphere from being insanely bright.
+		scatteringStep *= sunIlluminance * 3e-5; //Not physically based, but keeps the atmosphere from being insanely bright.
 
 		// add to total scattering
 		scattering += scatteringStep * transmittance;
@@ -162,7 +162,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 		              +        (     mieTransmittanceCoefficient * iOpticalDepthStep.y)));
 	}
 
-	return (planetIntersected ? (vec3(9.5, 11.5, 12.5)*scattering)*1.0097 : background * transmittance) + scattering;
+	return /*(planetIntersected ? (vec3(9.5, 11.5, 12.5)*scattering)*1.0097 : */ background * transmittance + scattering;
 }
 
 vec3 atmosphere(vec3 sunVector, vec3 viewVector) {
@@ -182,7 +182,7 @@ vec3 atmosphere(vec3 sunVector, vec3 viewVector) {
 
 vec3 get_atmosphere_transmittance(vec3 sunVector, vec3 upVector, in vec3 moonVector){
 	#if AtmosphereMode == 0
-	vec3 atmos = atmosphereTransmittance(sunVector, upVector, moonVector);
+	vec3 atmos = mix(moonColor, sunColor * 5e-5, float(sunAngle < 0.5)) * atmosphereTransmittance(mix(moonVector, sunVector, float(sunAngle < 0.5)), upVector);
 	#elif AtmosphereMode == 1
 	vec3 atmos = js_sunColor();
 	#endif

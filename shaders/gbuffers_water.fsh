@@ -37,11 +37,13 @@ const int noiseResInverse = 1 / noiseTextureResolution;
 
 void main() {
     color = texture(tex, textureCoordinate.st);
-    vec3 normals = waterNormal(worldPosition.xyz, viewPosition.xyz*tbn);
 
 	bool isWater = false;
     if(abs(idData - 8.5)  < 0.6) isWater = true;
     if(isWater) color = vec4(0.0, 0.0, 0.0, 0.11);
+
+    vec3 normals = vertexNormal;
+    if(isWater) normals = waterNormal(worldPosition.xyz, viewPosition.xyz*tbn);
 
     packedNormals = vec4(packNormal(normalize(normals)), 1.0, 1.0);
     packedData = vec4(encode2x16(sqrt(lightmapCoordinate)), encodeNormal3x16(normals * mat3(gbufferModelViewInverse)), floor(idData + 0.5) / 65535.0, 1.0);

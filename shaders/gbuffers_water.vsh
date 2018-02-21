@@ -1,11 +1,14 @@
 #version 420 compatibility
 
+//#define WavingWater //WiP
+
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelView;
 
 uniform float frameTimeCounter;
+uniform float rainStrength;
 
 uniform sampler2D noisetex;
 
@@ -18,9 +21,6 @@ out vec2 textureCoordinate;
 out vec2 lightmapCoordinate;
 out float idData;
 out float isWater;
-
-//attribute vec4 mc_Entity;
-//attribute vec4 at_tangent;
 
 layout (location = 0) in vec4 inPosition;
 layout (location = 2) in vec3 inNormal;
@@ -40,22 +40,30 @@ vec4 viewSpaceToLocalSpace(in vec4 viewSpace) {
 	return gbufferModelViewInverse * viewSpace;
 }
 
+const float pi  = 3.14159265358979;
+
 #define transMAD(mat, v) (mat3(mat) * (v) + (mat)[3].xyz)
 
 void main() {
 
-	vec4 v = inPosition;
+	vec4 v = (gl_ModelViewMatrix * inPosition);
+	vec4 v2 = gbufferModelViewInverse * v;
 	float speed = 0.5;
 	float t = frameTimeCounter * speed;
-	float waveHeight = 0.5;
+	float waveHeight = 0.075;
 	float waveWidth = 10.5;
-	
-	v.y += (
-	    sin(waveWidth * inPosition.x + t * 1.3) *
-	    cos(waveWidth * inPosition.y + t * 0.9) * waveHeight
-    );
+
+	vec3 w = v2.xyz + cameraPosition;
+
+	#ifdef WavingWater
+	if(mc_Entity.x != 79.0 && mc_Entity.x != 95.0 && mc_Entity.x != 160.0 && mc_Entity.x != 165.0) {
+                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.z / waveWidth));
+                v.y += waveHeight * sin(2 * pi * (t + w.x / waveWidth + w.z / waveWidth));
+	}
+	#endif
 
 	gl_Position = gbufferProjection * (gl_ModelViewMatrix * inPosition);
+	gl_Position += gbufferProjection * v;
     idData = mc_Entity.x;
 
 	world = transMAD(gbufferModelViewInverse, gl_Position.xyz) + cameraPosition.xyz;

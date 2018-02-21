@@ -20,6 +20,7 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
@@ -38,6 +39,7 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform float far;
 uniform float viewHeight, viewWidth;
 uniform float frameTimeCounter;
+uniform float sunAngle;
 
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
@@ -134,7 +136,7 @@ void main() {
     #endif
 
     #ifdef VolumetricFog
-    if(isEyeInWater == 0) color += vl;
+    if(isEyeInWater == 0) color = vl;
     #endif
 
     //color = vec4(dot(normal, upVector) * 0.5 + 0.5);

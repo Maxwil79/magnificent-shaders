@@ -8,7 +8,11 @@ layout (location = 9) in vec4 inLightmapCoord;
 layout (location = 10) in vec4 mc_Entity;
 layout (location = 11) in vec2 quadMidUV;
 
-uniform mat4  gbufferProjection; 
+uniform vec3 cameraPosition;
+
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferProjection;
+uniform mat4 gbufferModelView;
 
 uniform float frameTimeCounter;
 
@@ -21,24 +25,10 @@ out vec3 normals;
 
 out vec4 tint;
 
+const float pi  = 3.14159265358979;
+
 void main() {
     tint = inColor;
-
-	vec4 v = inPosition;
-	float speed = 0.5;
-	float t = frameTimeCounter * speed;
-	float waveHeight = 0.5;
-	float waveWidth = 10.5;
-	
-	if(mc_Entity.x == 31.0 || mc_Entity.x == 37.0 || mc_Entity.x == 38.0 && inTexCoord.y < quadMidUV.y) v.zyx += (
-	    // Add some offset to the waves to make it slightly less regular
-	    sin(waveWidth * inPosition.x + t * 1.3) *
-	    cos(waveWidth * inPosition.y + t * 0.9) * waveHeight
-    ) + (
-        // Extra waves to add interest
-	    cos(waveWidth * 2.0 * inPosition.x + t * -.3) *
-	    sin(waveWidth * 4.0 * inPosition.y + t * 3.9) * ( waveHeight / 2.5 )
-    );
 
 	idData = mc_Entity.x;
 
@@ -47,5 +37,20 @@ void main() {
     
     normals = normalize(gl_NormalMatrix * gl_Normal);
 
-    gl_Position = gbufferProjection * (gl_ModelViewMatrix * inPosition);
+	vec4 v = (gl_ModelViewMatrix * inPosition);
+	vec4 v2 = gbufferModelViewInverse * v;
+	float speed = 0.25;
+	float t = frameTimeCounter * speed;
+	float waveHeight = 0.045;
+	float waveWidth = 6.5;
+
+	vec3 w = v2.xyz + cameraPosition;
+
+	if(mc_Entity.x == 18.0 || mc_Entity.x == 161.0) {
+                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.z / waveWidth));
+                v.y += waveHeight * sin(2 * pi * (t + w.x / waveWidth + w.z / waveWidth));
+	}
+
+	gl_Position = gbufferProjection * (gl_ModelViewMatrix * inPosition);
+	gl_Position += gbufferProjection * v;
 }

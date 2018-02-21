@@ -1,7 +1,7 @@
 #version 420
 
 //#define VolumetricFog //Enable this for VL. Highly experimental.
-    #define AccumulationStrength 0.7 //[0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.09 0.08 0.07 0.06 0.05 0.04 0.03 0.02 0.01 0.009 0.008 0.007 0.006 0.005 0.004 0.003 0.002 0.001] Controls the strength of the temporal accumulation. A lower number means more accumulation. 
+    #define AccumulationStrength 1.0 //[1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.09 0.08 0.07 0.06 0.05 0.04 0.03 0.02 0.01 0.009 0.008 0.007 0.006 0.005 0.004 0.003 0.002 0.001] Controls the strength of the temporal accumulation. A lower number means more accumulation. Off by default.
 
 #define SSR
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
@@ -38,6 +38,7 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
@@ -46,6 +47,8 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
 uniform sampler2D noisetex;
+
+const bool colortex6Clear = false;
 
 uniform vec3 sunPosition;
 uniform vec3 cameraPosition;
@@ -57,6 +60,7 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform float far;
 uniform float viewHeight, viewWidth;
 uniform float frameTimeCounter;
+uniform float sunAngle;
 
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
@@ -150,6 +154,39 @@ float GGX (vec3 n, vec3 v, vec3 l, float r, float F0) {
 
   return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
+/*
+vec3 waterFix(vec2 coord) {
+	const vec2 range = vec2(0.0, 0.0);
+
+	vec3 result = vec3(0.0);
+	float totalWeight = 0.0;
+	for (float i = -range.y; i <= range.y; i++) {
+		for (float j = -range.x; j <= range.x; j++) {
+			vec2 sampleOffset = vec2(i, j) / vec2(viewWidth, viewHeight);
+
+			float sampleDepth = linearizeDepth(texture(depthtex0, coord + sampleOffset).r);
+            float weight = max(1.0 - length(sampleOffset / range), 0.0);
+			
+			result += textureLod(colortex0, coord + sampleOffset * 0.0, 0.0).rgb * weight;
+			totalWeight += weight;
+		}
+	}
+	return result / totalWeight;
+}
+*/
+vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
+    float fTime = frameTimeCounter * 0.25;
+
+    for(int i = -3; i <= 3; i++){
+        for(int j = -3; j <= 3; j++){
+            vec2 sampleOffset = vec2(i * (dither * fTime), j * (dither * fTime)) / vec2(viewWidth, viewHeight);
+
+            result += texture(colortex0, coord + sampleOffset * 0.025);
+        }
+    }
+
+    return result / 14;
+}
 
 #include "lib/water/reflection.glsl"
 
@@ -169,14 +206,15 @@ vec4 Fog(vec3 viewVector) {
     return result;
 }
 
-float noonLight = 8.0;
-float horizonLight = 85.5;
-float nightLight = 27.1;
+float noonLight = 5e1;
+float horizonLight = 5e2;
+float nightLight = 5e1;
 
 float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);
 
 void main() {
     color = texture(colortex0, textureCoordinate.st, 0);
+
     float depth = texture(depthtex0, textureCoordinate.st).r;
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
     float waterDepth = linearizeDepth(texture(depthtex0, textureCoordinate).r) - linearizeDepth(texture(depthtex1, textureCoordinate).r);
@@ -186,12 +224,8 @@ void main() {
     vec4 view = vec4(vec3(textureCoordinate.st, depth) * 2.0 - 1.0, 1.0);
     view = gbufferProjectionInverse * view;
     view /= view.w;
-    //view.xyz = normalize(view.xyz);
 
-    vec4 view2 = vec4(vec3(textureCoordinate.st, depth) * 2.0 - 1.0, 1.0);
-    view2 = gbufferProjectionInverse * view2;
-    view2 /= view2.w;
-    vec4 world = gbufferModelViewInverse * view2;
+    vec4 world = gbufferModelViewInverse * view;
     world /= world.w;
     world = gbufferPreviousProjection  * (gbufferPreviousModelView * world);
 
@@ -205,7 +239,7 @@ void main() {
     if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz)), 1.0);
 
     #ifdef VolumetricFog
-    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), VL(normalize(view.xyz)) * vlIntensity, AccumulationStrength);
+    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, vlIntensity*intensityMult), 1.0), AccumulationStrength);
     #else
     volume = vec4(1.0);
     #endif

@@ -6,7 +6,8 @@ layout (location = 0) in vec4 inPosition;
 layout (location = 8) in vec4 inTexCoord;
 layout (location = 10) in vec4 mc_Entity;
 
-uniform mat4  shadowProjection; 
+uniform mat4 shadowProjection, shadowModelView;
+uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
 
 uniform int entityId;
 
@@ -16,10 +17,28 @@ out float id;
 
 out float isWater;
 
+uniform vec3 cameraPosition;
+uniform float frameTimeCounter;
+const float pi  = 3.14159265358979;
+
 #include "lib/light/distortion.glsl"
 
 void main() {
-	gl_Position = shadowProjection * gl_ModelViewMatrix * inPosition;
+	vec4 v = (gl_ModelViewMatrix * inPosition);
+	vec4 v2 = shadowModelViewInverse * v;
+	float speed = 0.25;
+	float t = frameTimeCounter * speed;
+	float waveHeight = 0.045;
+	float waveWidth = 6.5;
+
+	vec3 w = v2.xyz + cameraPosition;
+
+	if(mc_Entity.x == 18.0 || mc_Entity.x == 161.0) {
+                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.z / waveWidth));
+                v.y += waveHeight * sin(2 * pi * (t + w.x / waveWidth + w.z / waveWidth));
+	}
+
+	gl_Position = shadowProjection * v;
 
     gl_Position.xy /= ShadowDistortion(gl_Position.xy);
     gl_Position.z /= 6.0;

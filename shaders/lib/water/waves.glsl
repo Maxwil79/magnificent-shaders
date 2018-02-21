@@ -8,7 +8,7 @@
 
 float waterNoise(vec2 coord) {
 		vec2 floored = floor(coord);
-		vec4 samples = textureGather(noisetex, floored / noiseTextureResolution); // textureGather is slightly offset (at least on nvidia) and this offset can change with driver versions, which is why i floor the coords
+		vec4 samples = textureGather(noisetex, (floored + 0.5) / noiseTextureResolution); // textureGather is slightly offset (at least on nvidia) and this offset can change with driver versions, which is why i floor the coords
 		vec4 weights = (coord - floored).xxyy * vec4(1,-1,1,-1) + vec4(0,1,0,1);
 		weights *= weights * (-2.0 * weights + 3.0);
 		return dot(samples, weights.yxxy * weights.zzww);
@@ -25,7 +25,7 @@ float getWaves(in vec3 position)
 	vec2 p = -(position.xz + position.y) + waveTime;
 
 	// Scale
-	p /= 25.0;
+	p /= 35.0;
 
 	const float weightArray[numWaves] = float[numWaves] (
 		2.0,
@@ -87,7 +87,7 @@ vec3 parallax_calculateCoordinate(vec3 inPosition, vec3 viewVector) {
 }
 
 vec3 waterNormal(in vec3 world, in vec3 view) {
-	const float sampleDist = 0.00061;
+	const float sampleDist = 0.1;
 	#ifdef WavePOM
 	vec3 newWorld = parallax_calculateCoordinate(world, view.xzy);
 	#else

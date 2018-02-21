@@ -72,11 +72,11 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     // mu=3.52 n=1.08
     // mu=3.23 n=1.24
 
-	float VoL   = dot(normalize(start), lightVector);
+	float VoL   = dot(normalize(end - start), lightVector);
 	float rayleigh = rayleighPhase(VoL);
     float mie = miePhase(VoL, 0.5);
     float isotropicPhase = 0.25 / pi;
-    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(start), lightVector)), 4.25, 1.01) * 0.3;
+    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(end - start), lightVector)), 3.23, 1.24) * 0.3;
 
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;

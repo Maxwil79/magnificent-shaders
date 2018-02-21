@@ -42,6 +42,7 @@ uniform vec3 shadowLightPosition;
 uniform float far;
 uniform float viewHeight, viewWidth;
 uniform float frameTimeCounter;
+uniform float sunAngle;
 
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
@@ -132,20 +133,6 @@ const vec2[36] offset = vec2[36](
         vec2( 0.92697510, -0.10826900),
         vec2( 0.45471010, -0.78973980)
 );
-
-vec3 ScreenSpaceShadows() {
-    vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture2D(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
-    viewPosition /= viewPosition.w;
-
-    vec3 lighting = vec3(0.0);
-
-    vec4 hitPosition;
-    if (!raytraceIntersection(viewPosition, lightVector, hitPosition, 64.0, 0.0, 0.0025, 1.0, 0.05)) {
-        return vec3(1.0);
-    }
-
-    return vec3(0.0);
-}
 
 float lerp(float v0, float v1, float t) {
   return (1 - t) * v0 + t * v1;

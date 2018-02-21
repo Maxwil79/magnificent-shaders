@@ -1,8 +1,8 @@
 float length2(vec2 x){return dot(x,x);}
 
 float ShadowDistortion(in vec2 pos){
-float distort = 0.0;
-distort = length(pos.xy) * 0.9 + (1.0 - 0.9);
+float dist = sqrt(pos.x * pos.x + pos.y * pos.y);
+float distort = (1.0f - 0.9) + dist * 0.9 + 0.0;
 
 return distort;
 }

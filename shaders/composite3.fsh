@@ -36,6 +36,7 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform float far;
 uniform float viewHeight, viewWidth;
 uniform float frameTimeCounter;
+uniform float sunAngle;
 
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
