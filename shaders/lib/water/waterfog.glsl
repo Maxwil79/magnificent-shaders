@@ -68,15 +68,11 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 	     rayVec /= FogSteps;
 	float stepSize = length(rayVec);
 
-    // mu=4.25 n=1.01
-    // mu=3.52 n=1.08
-    // mu=3.23 n=1.24
-
 	float VoL   = dot(normalize(end - start), lightVector);
 	float rayleigh = rayleighPhase(VoL);
     float mie = miePhase(VoL, 0.5);
     float isotropicPhase = 0.25 / pi;
-    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(end - start), lightVector)), 3.23, 1.24) * 0.3;
+    float waterPhase = isotropicPhase * 0.7 + water_fournierForandPhase(acos(dot(normalize(end - start), lightVector)), 4.25, 1.01) * 0.3;
 
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;
@@ -103,7 +99,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
 
         #ifdef WaterShadowEnable
-        float shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
+        float shadowDepthSample = tex0 - shadowPos.z;
         vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
         float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
 

@@ -10,7 +10,7 @@ layout (location = 0) out vec4 color;
 
 /*
 const int colortex0Format = RGBA16F;
-const int colortex1Format = RGBA16F;
+const int colortex1Format = RGBA32F;
 const int colortex4Format = RGBA32F;
 const int colortex7Format = RGB16F;
 */
@@ -164,7 +164,7 @@ void main() {
     vec3 moon = calculateMoon(moonVector, normalize(view.xyz));
     vec3 background = sun + moon; 
 
-    float shadows;
+    vec3 shadows;
 
     color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz)), 1.0);
     if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(view.xyz), sunVector, upVector, moonVector);

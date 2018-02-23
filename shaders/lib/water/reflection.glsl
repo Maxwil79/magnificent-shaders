@@ -19,7 +19,7 @@ vec3 reflection(in vec3 view) {
     //vec2 lightmap = texture(colortex2, textureCoordinate).rg;
     vec3 viewVec3 = vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r);
     int samples = SsrSamples;
-    float shadows = texture(colortex0, textureCoordinate.st).a;
+    vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
     float skyLight = decode2x16(texture(colortex4, textureCoordinate.st).r).y;
     vec3 waterNormal = unpackNormal(texture(colortex1, textureCoordinate.st).rg);
 

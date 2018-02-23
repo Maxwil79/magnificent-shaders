@@ -158,14 +158,14 @@ vec3 ScreenSpaceShadows() {
     vec3 lighting = vec3(0.0);
 
     vec4 hitPosition;
-    if (!raytraceIntersection(viewPosition, lightVector, hitPosition, 64.0, 0.0, 0.0025, 1.0, 0.05)) {
+    if (!raytraceIntersection(viewPosition, lightVector, hitPosition, 64.0, 0.0, 0.0065, 1.0, 0.05)) {
         return vec3(1.0);
     }
 
     return vec3(0.0);
 }
 
-vec3 getShading(in vec3 color, in vec3 world, in float id, out float shadowOpaque, in vec3 viewVector) {
+vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast, in vec3 viewVector) {
 
     mat4 shadowMVP = shadowProjection * shadowModelView;
     vec4 shadowPos  = shadowMVP * vec4(world, 1.0);

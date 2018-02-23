@@ -10,7 +10,7 @@ layout (location = 0) out vec4 color;
 
 /*
 const int colortex0Format = RGBA16F;
-const int colortex1Format = RGBA16F;
+const int colortex1Format = RGBA32F;
 const int colortex2Format = RGBA16F;
 const int colortex3Format = RGBA32F;
 const int colortex4Format = RGBA32F;
@@ -90,6 +90,8 @@ vec3 blackbody(float t){
 
 #include "dither.glsl"
 
+#include "lib/encode.glsl"
+
 #include "lib/decode.glsl"
 
 #include "lib/water/waterShadow.glsl"
@@ -165,9 +167,9 @@ void main() {
     vec4 world = gbufferModelViewInverse * view2;
     world /= world.w;
 
-    float shadows;
+    vec3 shadows;
 
     color.rgb = mix(color.rgb, getShading(transparents.rgb, world.xyz, id, shadows, normalize(view2.xyz)), transparents.a);
 
-    color.a = shadows;
+    color.a = encode3x16(shadows);
 }
