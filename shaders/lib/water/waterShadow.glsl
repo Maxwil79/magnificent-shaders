@@ -3,7 +3,7 @@
 
 #ifndef WiP_SwampWater
 const vec3 scoeff = vec3(1.20e-3, 7.20e-3, 8.00e-3);
-const vec3 acoeff = vec3(2.70e-1, 0.60e-1, 0.030e-1) * 0.09;
+const vec3 acoeff = vec3(2.70e-1, 0.40e-1, 0.030e-1) * 0.09;
 #else
 const vec3 scoeff = vec3(0.45, 0.45, 0.03) * 0.035;
 const vec3 acoeff = vec3(0.075, 0.065, 0.3) * 0.75;

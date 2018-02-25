@@ -14,9 +14,11 @@ bool raytraceIntersection(
 	direction *= -start.z;
 	direction  = viewSpaceToScreenSpace(direction + start, gbufferProjection) - position;
 
+	float qualityRCP = 1.0 / quality;
+
 	// Set the increment.
 	// `minof((step(0.0, direction) - position) / direction)` calculates the distance to the edge of the screen.
-	vec3 increment = direction * minof((step(0.0, direction) - position) / direction) / quality;
+	vec3 increment = direction * minof((step(0.0, direction) - position) / direction) * qualityRCP;
 
 	float difference;
 	bool  intersected = false;

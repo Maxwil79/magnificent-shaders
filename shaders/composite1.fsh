@@ -3,9 +3,9 @@
 //#define VolumetricFog //Enable this for VL. Highly experimental.
     #define AccumulationStrength 1.0 //[1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.09 0.08 0.07 0.06 0.05 0.04 0.03 0.02 0.01 0.009 0.008 0.007 0.006 0.005 0.004 0.003 0.002 0.001 0.0009 0.0008 0.0007 0.0006 0.0005 0.0004 0.0003 0.0002 0.0001] Controls the strength of the temporal accumulation. A lower number means more accumulation. Off by default. Kinda looks like a renderer.
 
-#define SSR
+#define Reflections
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
-    #define RoughnessValue 0.1 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1]
+    #define RoughnessValue 0.03 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1]
 
 #define RefractionMode 1 //[0 1] 0 = no waterfog, only raytraced refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet. Higher means more stable refraction, and faster, refraction. Lower means less stable, and slower, refraction.
 
@@ -236,7 +236,9 @@ void main() {
     //#elif RefractionMode == 3
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);
+    #ifdef Reflections
     if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz)), 1.0);
+    #endif
 
     #ifdef VolumetricFog
     volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, vlIntensity*intensityMult), 1.0), AccumulationStrength);
