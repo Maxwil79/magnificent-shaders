@@ -5,7 +5,7 @@
 
 #define Reflections
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
-    #define RoughnessValue 0.03 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1]
+    #define RoughnessValue 0.03 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1 0.15 0.2 0.25 0.3]
 
 #define RefractionMode 1 //[0 1] 0 = no waterfog, only raytraced refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet. Higher means more stable refraction, and faster, refraction. Lower means less stable, and slower, refraction.
 
@@ -207,7 +207,7 @@ vec4 Fog(vec3 viewVector) {
 }
 
 float noonLight = 1e0;
-float horizonLight = 5e1;
+float horizonLight = 5e2;
 float nightLight = 5e1;
 
 float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);

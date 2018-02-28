@@ -17,14 +17,11 @@ vec3 reflection(in vec3 view) {
     vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
     viewPosition /= viewPosition.w;
     viewPosition = normalize(viewPosition);
-    //vec2 lightmap = texture(colortex2, textureCoordinate).rg;
     vec3 viewVec3 = vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r);
     int samples = SsrSamples;
     vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
     float skyLight = pow(decode2x16(texture(colortex4, textureCoordinate.st).r).y, 7.0);
     vec3 waterNormal = unpackNormal(texture(colortex1, textureCoordinate.st).rg);
-
-    float schlick = (1.0 - 0.02) * pow(1.0 - clamp(dot(-normalize(viewPosition.xyz), waterNormal), 0.0, 1.0), 5.0) + 0.02;
 
     vec3 normal;
 

@@ -1,7 +1,7 @@
 #include "waterwaves.glsl"
 
-#define ParallaxWaveSamples 6
-#define PARALLAX_DEPTH 1.2
+#define ParallaxWaveSamples 8
+#define PARALLAX_DEPTH 1.0
 
 vec3 parallax_calculateCoordinate(vec3 inPosition, vec3 viewVector) {
 	viewVector = normalize(viewVector);
@@ -18,7 +18,7 @@ vec3 getParallax(in vec3 world, in vec3 view) {
 
     const float height = PARALLAX_DEPTH;
 
-    view.xy = view.xy * steps / length(view) * 1.0;
+    view.xy = view.xy * steps / length(view) * 0.4;
 
     float waveHeight = getWaves(world) * height;
 
@@ -32,7 +32,7 @@ vec3 getParallax(in vec3 world, in vec3 view) {
 }
 
 vec3 waterNormal(in vec3 world, in vec3 view) {
-	const float sampleDist = 0.1;
+	const float sampleDist = 0.075;
 	#ifdef WavePOM
 	vec3 newWorld = getParallax(world, view.xyz);
 	#else

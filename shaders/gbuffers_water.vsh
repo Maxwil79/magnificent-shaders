@@ -57,8 +57,8 @@ void main() {
 
 	#ifdef WavingWater
 	if(mc_Entity.x != 79.0 && mc_Entity.x != 95.0 && mc_Entity.x != 160.0 && mc_Entity.x != 165.0) {
-                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.z / waveWidth));
-                v.y += waveHeight * sin(2 * pi * (t + w.x / waveWidth + w.z / waveWidth));
+                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.x / waveWidth));
+                v.y += waveHeight * sin(2 * pi * (t + w.z / waveWidth + w.z / waveWidth));
 	}
 	#endif
 

@@ -61,7 +61,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 	int jStepsTimes4 = stepAmountI*4; //Makes sunset/sunrise look incorrect.
 
 	vec3 sunIlluminance = sunColor; //A thing.
-	vec3 moonIlluminance = moonColor / 22.0; //Looks nice.
+	vec3 moonIlluminance = moonColor / 12.0; //Looks nice.
 
 	//--//
 
@@ -69,13 +69,13 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 
     vec2 atmosphereEndDistance;
     bool atmosphereIntersected = calculateRaySphereIntersection(atmosphereRadius, viewVector, viewPosition, atmosphereEndDistance);
-    //if (!atmosphereIntersected) return background;
+    if (!atmosphereIntersected) return background;
     float planetDistance;
-    bool planetIntersected = calculateRaySphereIntersection(0.0, viewVector, viewPosition, planetDistance);
+    bool planetIntersected = calculateRaySphereIntersection(planetRadius, viewVector, viewPosition, planetDistance);
 
     float iStepSize  = (planetIntersected ? planetDistance : atmosphereEndDistance.x) / iSteps;
     vec3  iIncrement = viewVector * iStepSize;
-	iIncrement *= dither2;
+	//iIncrement *= dither2;
     vec3  iPosition  = -0.5 * iIncrement + viewPosition;
 
 	float sunVoL   = dot(viewVector, sunVector);
@@ -120,7 +120,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 		scatteringStep *= transmittance;
 
 		// multiply by light source luminance
-		scatteringStep *= sunIlluminance * 3e-5; //Not physically based, but keeps the atmosphere from being insanely bright.
+		scatteringStep *= sunIlluminance * 8e-5; //Not physically based, but keeps the atmosphere from being insanely bright.
 
 		// add to total scattering
 		scattering += scatteringStep * transmittance;
@@ -162,7 +162,7 @@ vec3 physicalAtmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 u
 		              +        (     mieTransmittanceCoefficient * iOpticalDepthStep.y)));
 	}
 
-	return /*(planetIntersected ? (vec3(9.5, 11.5, 12.5)*scattering)*1.0097 : */ background * transmittance + scattering;
+	return (planetIntersected ? vec3(0.0) : background) * transmittance + scattering;
 }
 
 vec3 atmosphere(vec3 sunVector, vec3 viewVector) {

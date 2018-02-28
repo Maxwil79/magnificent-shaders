@@ -11,7 +11,7 @@ float groundFog(vec3 worldPos) {
 #define STEPS 5 //[1 2 3 4 5 10 15 20 25 30 35 40 45 65 70 75] Higher steps equals more quality, but lower FPS. Lower numbers look better with a lower VolumeDistanceMultiplier.
 #define VolumeDistanceMultiplier 0.75 //[0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0] The multiplier of which the Volume distance uses to multiply far by.
 #define VolumeDistance far*VolumeDistanceMultiplier
-#define intensityMult 1e0 //[1e0 2e0 3e0 4e0 5e0 6e0 7e0 8e0 9e0 1e1 2e1 3e1 4e1 5e1 6e1 7e1 8e1 9e1 1e2 2e2 3e2 4e2 5e2 6e2 7e2 8e2 9e2 1e3] The intensity multiplier of the VL.
+#define intensityMult 1e0 //[1e0 2e0 3e0 4e0 5e0 6e0 7e0 8e0 9e0 1e1] The intensity multiplier of the VL.
 
 //float dither=bayer16x16( ivec2(texcoord*vec2(viewWidth,viewHeight)) );
 

@@ -58,7 +58,7 @@ vec3 bloom(float LOD, vec2 coordinates) {
             offset /= resolution * 1.1;
             weight = pow(weight, 15.0);
 
-            bloomColor += textureLod(colortex0, coordinates + (offset), LOD).rgb * weight;
+            bloomColor += textureLod(colortex0, coordinates + (offset * 1.3), LOD).rgb * weight;
             totalWeight += weight;
 		}
 	}
