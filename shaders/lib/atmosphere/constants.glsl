@@ -41,5 +41,5 @@ const vec2 scaleHeights = vec2(rayleighScaleHeight, mieScaleHeight);
 const float atmosphereRadius = planetRadius + atmosphereHeight;
 const float atmosphereRadiusSquared = atmosphereRadius * atmosphereRadius;
 
-#define skyQuality_I 12 //[4 8 12 16 32 64 128] Controls the quality of the atmosphere. Higher means a slower, but more realistic lookin' sky. Change the J steps after you change this. Only used by the sunlight right now.
+#define skyQuality_I 12 //[4 8 12 16 32 64 128] Controls the quality of the atmosphere. Higher means a slower, but more realistic lookin' sky. Change the J steps after you change this. Only used by the atmosphere transmittance function right now.
 #define skyQuality_J 3 //[3 6 8 12 24 48 96] Controls the quality of the atmosphere. Higher means a slower, but more realistic lookin' sky. Only change if you have changed the I steps.
