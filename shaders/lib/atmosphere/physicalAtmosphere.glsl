@@ -211,7 +211,7 @@ vec3 sky_atmosphereTransmittance(vec3 position, vec3 direction, const float step
 }
 
 vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonVector, vec3 sunIlluminance, vec3 moonIlluminance) {
-	const int iSteps = 32;
+	const int iSteps = 16;
 	const int jSteps = 3;
 
 	vec3 viewPosition = vec3(0.0, planetRadius + cameraPosition.y, 0.0);
@@ -255,7 +255,7 @@ vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonV
 
 vec3 get_atmosphere_transmittance(vec3 sunVector, vec3 upVector, vec3 moonVector){
 	#if AtmosphereMode == 0
-	vec3 atmos = mix(moonColor, sunColor * 24e-3, float(sunAngle < 0.5)) * atmosphereTransmittance(mix(moonVector, sunVector, float(sunAngle < 0.5)), upVector);
+	vec3 atmos = mix(moonColor, sunColor * 12e-3, float(sunAngle < 0.5)) * atmosphereTransmittance(mix(moonVector, sunVector, float(sunAngle < 0.5)), upVector);
 	#elif AtmosphereMode == 1
 	vec3 atmos = js_sunColor();
 	#endif
@@ -275,7 +275,7 @@ vec3 get_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonV
 
 vec3 get_atmosphere_ambient(vec3 background, vec3 viewVector, vec3 sunVector, in vec3 moonVector){
 	#if AtmosphereMode == 0
-	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 1e-1, moonColor);
+	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor);
 	#elif AtmosphereMode == 1
 	vec3 atmos = js_sunAmbient(upVector);
 	#endif

@@ -202,7 +202,11 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     float shadowCast = float(texture(shadowtex0, shadowPos.st).r);
 
+    #if AtmosphereMode == 0
+    float NdotL = dot(mat3(gbufferModelViewInverse) * normal,lightVector);
+    #elif AtmosphereMode == 1
     float NdotL = dot(normal,lightVector);
+    #endif
     float NdotV = dot(normal,viewVector);
 
     vec3 H = normalize(lightVector+viewVector);

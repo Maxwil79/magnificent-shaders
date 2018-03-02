@@ -22,6 +22,8 @@ in vec3 lightVector;
 in vec3 worldLightVector;
 in vec3 sunVector;
 in vec3 moonVector;
+in vec3 sunVector2;
+in vec3 moonVector2;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
@@ -160,15 +162,15 @@ void main() {
     vec4 world = gbufferModelViewInverse * view2;
     world /= world.w;
 
-    vec3 sun = calculateSun(sunVector, normalize(view.xyz));
-    vec3 moon = calculateMoon(moonVector, normalize(view.xyz));
-    vec3 background = sun + moon; 
-
-    vec3 shadows;
-
 	mat3 backPosition;
 	backPosition[0] = vec3(textureCoordinate, depth);
 	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
+
+    vec3 sun = calculateSun(sunVector2, normalize(view.xyz));
+    vec3 moon = calculateMoon(moonVector2, normalize(view.xyz));
+    vec3 background = sun + moon; 
+
+    vec3 shadows;
 
     color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz)), 1.0);
     if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(mat3(gbufferModelViewInverse) * backPosition[1]), sunVector, moonVector);
