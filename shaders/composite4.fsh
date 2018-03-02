@@ -69,25 +69,6 @@ float linearizeDepth(float depth) {
     return -1.0 / ((depth * 2.0 - 1.0) * gbufferProjectionInverse[2].w + gbufferProjectionInverse[3].w);
 }
 
-vec3 waterFix(vec2 coord) {
-	const vec2 range = vec2(0.0, 0.0);
-
-	vec3 result = vec3(0.0);
-	float totalWeight = 0.0;
-	for (float i = -range.y; i <= range.y; i++) {
-		for (float j = -range.x; j <= range.x; j++) {
-			vec2 sampleOffset = vec2(i, j) / vec2(viewWidth, viewHeight);
-
-			float sampleDepth = linearizeDepth(texture(depthtex0, coord + sampleOffset).r);
-            float weight = max(1.0 - length(sampleOffset / range), 0.0);
-			
-			result += textureLod(colortex0, coord + sampleOffset * 0.0, 0.0).rgb * weight;
-			totalWeight += weight;
-		}
-	}
-	return result / totalWeight;
-}
-
 vec4 diffractionSpikes (vec4 result) {
     const int spikeSamples = 32;
     const int spikeCount = ApertureBladeCount; 
@@ -116,8 +97,6 @@ const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 void main() {
     color = texture(colortex0, textureCoordinate);
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
-
-    //if(id == 8.0 || id == 9.0 || id == 95.0) color = vec4(waterFix(textureCoordinate.st), 1.0);
 
     vec3 bloomResult = bloom(0.0, textureCoordinate * 2.0);
     bloomResult += bloom(2.0, (textureCoordinate - vec2(0.51, 0.0)) * 4.0);

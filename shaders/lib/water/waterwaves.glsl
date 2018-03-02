@@ -76,10 +76,10 @@ float getWaves(in vec3 position)
 	);
 
 	vec2 translationArray2[numWaves] = vec2[numWaves] (
-		vec2(pArray2[0].y * 0.0, pArray2[0].x * 0.0),
-		vec2(pArray2[1].y * 0.0, pArray2[1].x * 0.0),
-		vec2(pArray2[2].y * 0.0, pArray2[2].x * 0.0),
-		vec2(pArray2[3].y * 0.0, pArray2[3].x * 0.0)
+		vec2(pArray[0].y * 0.0, pArray[0].x * 0.0),
+		vec2(pArray[1].y * 0.0, pArray[1].x * 0.0),
+		vec2(pArray[2].y * 1.5, pArray[2].x * 1.5),
+		vec2(pArray[3].y * 1.5, pArray[3].x * 1.7)
 	);
 
 	float waves   = 0.0;
@@ -96,8 +96,8 @@ float getWaves(in vec3 position)
 
 	waves /= weights;
 
-	waves *= 0.5;
-	waves -= 0.5;
+	waves *= 0.2;
+	waves -= 0.2;
 
 	return waves;
 }

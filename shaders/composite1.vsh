@@ -18,6 +18,8 @@ out vec3 lightVector;
 out vec3 worldLightVector;
 out vec3 sunVector;
 out vec3 moonVector;
+out vec3 sunVector2;
+out vec3 moonVector2;
 
 varying vec4 timeVector;
 
@@ -37,6 +39,9 @@ void main() {
     sunVector = normalize(sunPosition); 
     moonVector = normalize(moonPosition); 
     lightVector = normalize(shadowLightPosition);
+
+    sunVector2 = mat3(gbufferModelViewInverse) * sunPosition        * 0.01; 
+    moonVector2 = mat3(gbufferModelViewInverse) * moonPosition        * 0.01;
 
     lightVector = (sunAngle > 0.5) ? moonVector : sunVector;
     worldLightVector = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);

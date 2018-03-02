@@ -88,6 +88,12 @@ vec3 Uncharted2Tonemap(vec3 x)
     return x*((vec3(A+C+B)+D+E)/(vec3(A+B)+D*F))-E/F;
 }
 
+vec3 jodieRoboTonemap(vec3 c){
+    float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    vec3 tc = c * inversesqrt( c * c + 1. );
+    return mix(c * inversesqrt( l * l + 1. ), tc, tc);
+}
+
 vec4 ps_main()
 {
      vec3 texColor = texture(colortex0, textureCoordinate.st).rgb;
@@ -111,7 +117,7 @@ void main() {
 	float i = Version;
 
 	#if TonemapVersion == 0
-    color.rgb = tonemap(color.rgb);
+    color.rgb = jodieRoboTonemap(color.rgb);
 	#elif TonemapVersion == 1
 	color.rgb = tonemapUncharted2(color.rgb);
 	#endif

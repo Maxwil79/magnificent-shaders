@@ -219,7 +219,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     lighting = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * diffuse) * shadows + lighting;
     lighting = blockLightColor * pow(lightmap.x, Attenuation) + lighting;
-    lighting = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, upVector, moonVector)) * pow(lightmap.y, 5.0) + lighting;
+    lighting = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector)) * pow(lightmap.y, 5.0) + lighting;
 
     vec3 emission = color * 0.15;
     if (id == 10.0 || id == 11.0 || id == 51.0 || id == 89.0) {

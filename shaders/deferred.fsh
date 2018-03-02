@@ -166,8 +166,12 @@ void main() {
 
     vec3 shadows;
 
+	mat3 backPosition;
+	backPosition[0] = vec3(textureCoordinate, depth);
+	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
+
     color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz)), 1.0);
-    if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(view.xyz), sunVector, upVector, moonVector);
+    if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(mat3(gbufferModelViewInverse) * backPosition[1]), sunVector, moonVector);
 
     //if(id == 8.0 || id == 9.0) color = vec4(decodeNormal3x16(texture(colortex1, textureCoordinate.st).r) * mat3(gbufferModelView), 1.0);
 

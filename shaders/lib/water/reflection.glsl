@@ -7,11 +7,11 @@ float better_fresnel(in vec3 viewVector, in vec3 normal) {
     float fresnel = (n0*cti-ctt)/(n0*cti+ctt);
     fresnel*=fresnel;
     float fresnel2 = (ctt-n0*cti)/(n0*cti+ctt);
-    fresnel =.5*(fresnel+fresnel2*fresnel2);
+    fresnel =.75*(fresnel+fresnel2*fresnel2);
     return fresnel;
 }
 
-vec3 reflection(in vec3 view) {
+vec3 reflection(in vec3 view, in vec3 viewVector) {
     vec3 reflection = vec3(0.0);
     int i = 0;
     vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
@@ -34,15 +34,16 @@ vec3 reflection(in vec3 view) {
     float fresnelR = better_fresnel(view, normal);
     
     vec3 direction = reflect(viewPosition.xyz, normal);
+    vec3 direction1 = reflect(viewVector, normal * mat3(gbufferProjectionInverse));
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
-        reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
-        continue;
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 64.0, 4.0)) {
+        //reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
+        //continue;
     }
 
     //vec3 sun = calculateSun(sunVector, normalize(direction.xyz)) * shadows;
 
-    reflection += skyLight * get_atmosphere(vec3(0.0), direction, sunVector, upVector, moonVector) * fresnelR;
+    reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2) * fresnelR;
     }
     vec3 moon = (moonColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, 0.08*0.08, 0.5))) * shadows;
     vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.08*0.08, 0.5))) * shadows;

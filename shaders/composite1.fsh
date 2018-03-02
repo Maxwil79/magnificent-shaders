@@ -29,6 +29,8 @@ in vec3 lightVector;
 in vec3 worldLightVector;
 in vec3 sunVector;
 in vec3 moonVector;
+in vec3 sunVector2;
+in vec3 moonVector2;
 
 varying vec4 timeVector;
 
@@ -195,7 +197,7 @@ vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
 #ifdef VolumetricFog
 #include "lib/light/volumetrics.glsl"
 #endif
-
+/*
 vec4 Fog(vec3 viewVector) {
     vec4 result = vec4(0.0);
     float shadowDepthSample = 0.0;
@@ -205,7 +207,7 @@ vec4 Fog(vec3 viewVector) {
 
     return result;
 }
-
+*/
 float noonLight = 1e0;
 float horizonLight = 5e2;
 float nightLight = 5e1;
@@ -229,6 +231,10 @@ void main() {
     world /= world.w;
     world = gbufferPreviousProjection  * (gbufferPreviousModelView * world);
 
+	mat3 backPosition;
+	backPosition[0] = vec3(textureCoordinate, depth);
+	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
+
     #if RefractionMode == 1
     if(id == 8.0 || id == 9.0) color = vec4(refractionEffect(view, waterDepth, lightmap, depth, waterNormal), 1.0);
     #elif RefractionMode == 0
@@ -237,7 +243,7 @@ void main() {
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);
     #ifdef Reflections
-    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz)), 1.0);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz), normalize(mat3(gbufferModelViewInverse) * backPosition[1])), 1.0);
     #endif
 
     #ifdef VolumetricFog
