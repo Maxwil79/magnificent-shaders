@@ -249,36 +249,22 @@ vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonV
 	return background * transmittance + scattering;
 }
 
-#define AtmosphereMode 0 //[0 1] 0 = more correct but stops at the planet. 1 = less correct but does not stop at the planet. You can leave the atmosphere if the setting is at 0. This setting affects anything that uses the atmosphere. This includes sunlight, ambient light and reflections.
-
 #include "atmosphereTransmittance.glsl"
 
 vec3 get_atmosphere_transmittance(vec3 sunVector, vec3 upVector, vec3 moonVector){
-	#if AtmosphereMode == 0
 	vec3 atmos = mix(moonColor, sunColor * 12e-3, float(sunAngle < 0.5)) * atmosphereTransmittance(mix(moonVector, sunVector, float(sunAngle < 0.5)), upVector);
-	#elif AtmosphereMode == 1
-	vec3 atmos = js_sunColor();
-	#endif
 
 	return atmos;
 }
 
 vec3 get_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonVector){
-	#if AtmosphereMode == 0
 	vec3 atmos = sky_atmosphere(background, viewVector, sunVector, moonVector, sunColor * 1e-1, moonColor);
-	#elif AtmosphereMode == 1
-	vec3 atmos = js_sunScatter(viewVector);
-	#endif
 
 	return atmos;
 }
 
 vec3 get_atmosphere_ambient(vec3 background, vec3 viewVector, vec3 sunVector, in vec3 moonVector){
-	#if AtmosphereMode == 0
 	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor);
-	#elif AtmosphereMode == 1
-	vec3 atmos = js_sunAmbient(upVector);
-	#endif
 
 	return atmos;
 }

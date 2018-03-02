@@ -212,6 +212,8 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     #include "shadows/hard.glsl"
     #elif ShadowType == 1
     #include "shadows/soft.glsl"
+    #elif ShadowType == 2
+    #include "shadows/pcss.glsl"
     #endif
 
     #ifdef WaterShadowEnable
@@ -233,7 +235,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     float NdotH = dot(normal,H);
     float LdotH = dot(lightVector,H);
 
-    float diffuse = 1.0;
+    float diffuse = max(0.0, NdotL);
     if(id == 51.0) diffuse = 1.0;
     if(id == 18.0 || id == 31.0 || id == 38.0 || id == 59.0 || id == 106.0 || id == 141.0 || id == 142.0 || id == 161.0 || id == 175.0 || id == 207.0) diffuse = 1.0;
 
@@ -241,7 +243,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
 
-    lighting = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * diffuse) * shadows + lighting;
+    lighting = (get_atmosphere_transmittance(sunVector, mat3(gbufferModelViewInverse) * upVector, moonVector) * diffuse) * shadows + lighting;
     lighting = blockLightColor * pow(lightmap.x, Attenuation) + lighting;
     lighting = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector)) * pow(lightmap.y, 5.0) + lighting;
 
