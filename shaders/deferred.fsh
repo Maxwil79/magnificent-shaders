@@ -17,6 +17,8 @@ const int colortex7Format = RGB16F;
 
 const float pi  = 3.14159265358979;
 
+const int   shadowMapResolution      = 1024; //[512 1024 2048 4096 8192]
+
 in vec2 textureCoordinate;
 in vec3 lightVector;
 in vec3 worldLightVector;

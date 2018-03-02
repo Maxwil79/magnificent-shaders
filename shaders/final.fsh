@@ -117,7 +117,7 @@ void main() {
 	float i = Version;
 
 	#if TonemapVersion == 0
-    color.rgb = jodieRoboTonemap(color.rgb);
+    color.rgb = tonemap(color.rgb);
 	#elif TonemapVersion == 1
 	color.rgb = tonemapUncharted2(color.rgb);
 	#endif

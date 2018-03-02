@@ -178,11 +178,35 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     vec3 shadows = vec3(0.0);
     vec3 lighting = vec3(0.0);
 
+	float mapRadius = shadowProjectionInverse[1].y;
+	float mapDepth  = shadowProjectionInverse[2].z * -16.0;
+	int mapResolution = shadowMapResolution;
+
+	float spread = (tan(radians(1.5)) * mapDepth / (2.0 * mapRadius)) / 0.9;
+
     float noise = fract(sin(dot(textureCoordinate.xy, vec2(18.9898f, 28.633f))) * 4378.5453f) * 4.0 / 5.0;
     mat2 noiseM = mat2(cos(noise), -sin(noise),
 						   sin(noise), cos(noise));
 
 	mat2 rot = noiseM;
+
+	float depthAverage = 0.0;
+	for (int i = 0; i < 5; i++) {
+        for(int j = 0; j < 5; j++) {
+		    vec2 sampleOffset = vec2(i, j);
+		    vec2 circle = (sampleOffset - 2) * max(abs(normalize(sampleOffset - 2).x), abs(normalize(sampleOffset - 2).y));
+		    vec2 scoord = shadowPos.xy + (rot * circle * 0.075 / mapRadius);
+
+		    vec4 depthSamples = textureGather(shadowtex1, scoord);
+		    depthSamples = max(vec4(0.0), shadowPos.z - depthSamples);
+		    depthAverage += dot(depthSamples, vec4(0.25));
+        }
+    }
+	//depthAverage /= 5;
+
+	float penumbraSize = max(depthAverage * spread, 1.0 / mapResolution);
+
+    penumbraSize = clamp(penumbraSize, 0.0, 0.75);
 
     #if ShadowType == 0
     #include "shadows/hard.glsl"
@@ -202,18 +226,14 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     float shadowCast = float(texture(shadowtex0, shadowPos.st).r);
 
-    #if AtmosphereMode == 0
     float NdotL = dot(mat3(gbufferModelViewInverse) * normal,lightVector);
-    #elif AtmosphereMode == 1
-    float NdotL = dot(normal,lightVector);
-    #endif
     float NdotV = dot(normal,viewVector);
 
     vec3 H = normalize(lightVector+viewVector);
     float NdotH = dot(normal,H);
     float LdotH = dot(lightVector,H);
 
-    float diffuse = max(0.0, NdotL);
+    float diffuse = 1.0;
     if(id == 51.0) diffuse = 1.0;
     if(id == 18.0 || id == 31.0 || id == 38.0 || id == 59.0 || id == 106.0 || id == 141.0 || id == 142.0 || id == 161.0 || id == 175.0 || id == 207.0) diffuse = 1.0;
 
