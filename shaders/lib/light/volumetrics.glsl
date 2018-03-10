@@ -1,10 +1,10 @@
-#define MaxHeight 32.0 //[4.0 8.0 16.0 32.0 64.0 128.0 256.0 512.0]
+#define MaxHeight 64.0 //[4.0 8.0 16.0 32.0 64.0 128.0 256.0 512.0]
 
 float groundFog(vec3 worldPos) {
 	worldPos.y -= MaxHeight;
 	float density = 1.0;
-	density *= exp(-worldPos.y / 8.0);
-    density = clamp(density, 0.0, 0.4);
+	density *= exp(-worldPos.y / 2.0);
+    density = clamp(density, 0.0, 2.4);
 	return density;
 }
 
@@ -17,6 +17,7 @@ float groundFog(vec3 worldPos) {
 
 vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float intensity) {  
     const vec3 attenCoeff = rayleighTransmittanceCoefficient + mieTransmittanceCoefficient;
+    const vec3 waterAbsorb = attenCoeff + vec3(0.6, 0.5, 0.7); //Not physically based, and kinda here for testing purposes.
 
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));
     if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
@@ -74,6 +75,7 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
         scattered += (shadow + skylightContribution) * transmittance;
         transmittance *= exp(-(attenCoeff) * (stepSize));
     } scattered *= scoeff;
+    //scattered *= waterAbsorb;
     scattered *= (1.0 - exp(-(attenCoeff) * (stepSize))) / (attenCoeff);
 
     return color * transmittance + (scattered * intensity);

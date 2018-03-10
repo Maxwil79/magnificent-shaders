@@ -24,6 +24,7 @@ uniform sampler2D depthtex2;
 
 uniform float frameTimeCounter;
 uniform float frameTime;
+uniform float aspectRatio;
 
 uniform mat4 gbufferProjectionInverse, gbufferModelViewInverse;
 uniform mat4 gbufferProjection, gbufferModelView;
@@ -71,8 +72,8 @@ float linearizeDepth(float depth) {
 
 vec4 diffractionSpikes (vec4 result) {
     const int spikeSamples = 32;
-    const int spikeCount = ApertureBladeCount; 
-    const float spikeSize = Aperture;
+    const int spikeCount = 8; 
+    const float spikeSize = 48.0;
     const float angle = radians(10 + 180.0);
 
     float finalWeight = 1.0;
@@ -81,16 +82,42 @@ vec4 diffractionSpikes (vec4 result) {
         for (int j = 0; j < spikeSamples; j++){
             float weight = max(1.0 - pow(float(j) / spikeSamples, 0.00695), 0.0);
             //weight = (1.0 - weight) / (0.00695 * weight * weight);
-            result += texture(colortex0, textureCoordinate + (direction * spikeSize) * j / screenResolution) * weight;
+            result.r += texture(colortex0, textureCoordinate + (direction * 7.0) * j / screenResolution).r * weight;
+            result.g += texture(colortex0, textureCoordinate + (direction * 5.0) * j / screenResolution).g * weight;
+            result.b += texture(colortex0, textureCoordinate + (direction * 9.0) * j / screenResolution).b * weight;
             finalWeight += weight;
         }
     }
     result /= finalWeight;
 
-    return pow(result, vec4(3.5));
+    return result;
 }
 
-vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.75 / 6.5);
+vec3 diffractionSpikes2(vec3 color) {
+	const float spikeCount   = 8;
+	const float spikeSamples = 32.0;
+	const float spikeFalloff = 32.0;
+	const float spikeSize    = 0.075 / spikeSamples;
+	const float rotation     = radians(10 + 180.0);
+
+	float totalWeight = 1.0;
+	for (float i = 0.0; i < 8; i++) {
+		float angle = 6.28 * (i / 8) + rotation;
+		vec2 direction = vec2(sin(angle), cos(angle)) * spikeSize / vec2(aspectRatio, 1.0);
+
+		for (float j = 1.0; j < spikeSamples; j++) {
+			float weight = j / spikeSamples;
+			weight = (1.0 - weight) / (spikeFalloff * weight * weight);
+			color += texture(colortex0, direction * j + textureCoordinate).rgb * weight;
+			totalWeight += weight;
+		}
+	}
+	color /= totalWeight;
+
+	return color;
+}
+
+vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(0.75 / 6.5);
 
 const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 
@@ -117,9 +144,9 @@ void main() {
     bloomPass.rgb = mix(bloomResult.rgb, dot(bloomResult.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
     #endif
 
-    vec4 diffraction = diffractionSpikes(color);
+    vec4 diffraction = vec4(diffractionSpikes2(color.rgb), 1.0);
     #ifdef DifractionSpikes
-    color += mix(color, diffraction, 0.85);
+    color += mix(color, diffraction, 0.2);
     #endif
 
     color *= smoothExposure;

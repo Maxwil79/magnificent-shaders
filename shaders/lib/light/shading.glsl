@@ -170,6 +170,8 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     mat4 shadowMVP = shadowProjection * shadowModelView;
     vec4 shadowPos  = shadowMVP * vec4(world, 1.0);
 
+	float distortionFactor = 1.0 / ShadowDistortion(shadowPos.st);
+
     shadowPos.xy /= ShadowDistortion(shadowPos.st);
     shadowPos.z /= 6.0;
 
@@ -191,10 +193,11 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 	mat2 rot = noiseM;
 
 	float depthAverage = 0.0;
-	for (int i = 0; i < 5; i++) {
-        for(int j = 0; j < 5; j++) {
-		    vec2 sampleOffset = vec2(i, j);
-		    vec2 circle = (sampleOffset - 2) * max(abs(normalize(sampleOffset - 2).x), abs(normalize(sampleOffset - 2).y));
+	for (int i = 0; i < 7; i++) {
+        for(int j = 0; j < 7; j++) {
+		    vec2 sampleOffset = vec2(i, j) - 3;
+			vec2 tmp = abs(normalize(sampleOffset));
+			vec2 circle = sampleOffset * max(tmp.x, tmp.y);
 		    vec2 scoord = shadowPos.xy + (rot * circle * 0.075 / mapRadius);
 
 		    vec4 depthSamples = textureGather(shadowtex1, scoord);
@@ -202,11 +205,11 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 		    depthAverage += dot(depthSamples, vec4(0.25));
         }
     }
-	//depthAverage /= 5;
+	depthAverage /= 4;
 
 	float penumbraSize = max(depthAverage * spread, 1.0 / mapResolution);
 
-    penumbraSize = clamp(penumbraSize, 0.0, 0.75);
+    //penumbraSize = clamp(penumbraSize, 0.0, 0.75);
 
     #if ShadowType == 0
     #include "shadows/hard.glsl"

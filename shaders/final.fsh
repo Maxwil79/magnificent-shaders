@@ -1,6 +1,6 @@
 #version 420
 
-#define TonemapVersion 0 //[0 1] 0 = Zombye's tonemap. 1 = Uncharted 2 tonemap.
+#define TonemapVersion 0 //[0 1 2] 0 = A Zombye tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
 
 layout (location = 0) out vec4 color;
 
@@ -94,6 +94,12 @@ vec3 jodieRoboTonemap(vec3 c){
     return mix(c * inversesqrt( l * l + 1. ), tc, tc);
 }
 
+vec3 jodieReinhardTonemap(vec3 c){
+    float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    vec3 tc = c / ( c + 1. );
+    return mix(c / ( l + 1. ), tc, tc);
+}
+
 vec4 ps_main()
 {
      vec3 texColor = texture(colortex0, textureCoordinate.st).rgb;
@@ -120,6 +126,8 @@ void main() {
     color.rgb = tonemap(color.rgb);
 	#elif TonemapVersion == 1
 	color.rgb = tonemapUncharted2(color.rgb);
+	#elif TonemapVersion == 2
+	color.rgb = jodieRoboTonemap(color.rgb);
 	#endif
 
 	float iamfloat = 1.0;

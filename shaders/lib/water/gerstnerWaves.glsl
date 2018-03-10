@@ -44,8 +44,8 @@ float calculateWaveHeight(vec2 coord) {
     float waves = 0.0;
 
     const float f = tau / (2.618);
-    const float a = cos(f);
-    const float b = sin(f);
+    float a = cos(f);
+    float b = sin(f);
 
     for (int i = 0; i < octaves; i++) {
         vec2 noise     = noiseSmooth(coord.xy * 0.15 + i / octaves).xy;
@@ -54,6 +54,8 @@ float calculateWaveHeight(vec2 coord) {
         waveAmplitude *= 0.6;
         waveLength    *= 0.7;
         waveDirection  = rotateNoMat(waveDirection, a, b);
+        //coord  = rotateNoMat(coord + waveDirection, a, b);
+        a      += pi - 3.23333;
     }
 
     return waves;

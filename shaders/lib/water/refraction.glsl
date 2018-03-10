@@ -52,7 +52,7 @@ vec3 refractionEffect(vec4 view, float waterDepth, vec2 lightmap, float depth, i
     vec3 start = view.xyz;
 
     float refractAmount = clamp(waterDepth, 0.0, 1.0);
-    float refractionTexcoord = clamp01(4.9 - abs(textureCoordinate.y * 2.0 - 5.0));
+    float refractionTexcoord = clamp01(5.0 - abs(textureCoordinate.y * 2.0 - 5.0));
     if(isEyeInWater == 0) refractAmount *= refractionTexcoord;
 
     vec3 refractionDirection = refract(normalize(view.xyz), normal, AirIOR/WaterIOR);

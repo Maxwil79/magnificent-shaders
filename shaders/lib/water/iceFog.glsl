@@ -1,66 +1,8 @@
-vec3 waterFog(vec3 color, float dist) {
-    vec3 acoeff = vec3(.4510, .0567, .0476 ) * 3.0;
-    vec3 scoeff = vec3(6.9, 7.5, 7.1) * 0.0005;
+//This will eventually be merged with the water fog function.
 
-    float shadows = texture(colortex0, textureCoordinate.st).a;
-    if(isEyeInWater == 1) shadows = 1.0;
-
-    vec3 lightColor = vec3(0.0);
-    lightColor = vec3(get_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector)) / pi;
-    vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
-
-    vec3 depthColors = vec3(1.0);
-
-    vec3 attenCoeff = scoeff + acoeff;
-
-    vec3 waterColors = attenCoeff+1.1;
-
-    vec3 transmittance = exp(-attenCoeff * dist);
-	vec3 scattered  = scoeff * (1.0 - transmittance) / acoeff;
-
-    if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
-    vec3 lighting = pow(lightmap.y, 4.0) * lightColor;
-
-    return color * transmittance + lighting * scattered;
-}
-
-// Volumetric Water Fog
-float pow2(in float n)  { return n * n; }
-
-vec3 waterFogAmbient(float dist, vec3 lightColor, vec3 attenCoeff) {
-    //vec3 acoeff = vec3(1.35, 0.05, 0.03) * 40.5;
-    //vec3 scoeff = vec3(0.0000, 0.01, 0.01) * 4.5;
-
-    //vec3 attenCoeff = scoeff + acoeff;
-
-    vec2 lightmap = texture(colortex2, textureCoordinate.st).rg;
-    vec3 transmittance = exp(-attenCoeff * clamp(dist, 0.0, 4e12));
-    if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
-
-    return ((transmittance * 45e-2) * pow(lightmap.y, 5.0)) * lightColor;
-}
-
-float water_fournierForandPhase(float theta, float mu, float n) {
-    float v     = (3.0 - mu) * 0.5;
-    float u     = 2.0 * clamp01(sin(theta / 2.0));
-    float delta = pow2(u) / (3.0 * pow2(n - 1.0));
-
-    float deltapv = pow(delta + 1e-9, v);
-
-    float
-    result  = (v * (1.0 - delta) - (1.0 - deltapv)) + (4.0 / (pow2(u) + 1e-9)) * (delta * (1.0 - deltapv) - v * (1.0 - delta));
-    result /= 4.0 * pi * pow2(1.0 - delta) * deltapv + 5e-6;
-
-    return result;
-}
-
-vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
-    const vec3 attenCoeff = acoeff + scoeff;
-    #ifndef WiP_SwampWater
+vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
+    const vec3 attenCoeff = acoeff2 + scoeff2;
     float density = 1.0;
-    #else
-    float density = WaterfogDensity;
-    #endif
 
 
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));
@@ -84,7 +26,6 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 	vec3 scattered  = vec3(0.0) * transmittance;
 
     vec3 increment = (end - start) / FogSteps;
-    increment /= distance(start, end) / clamp(distance(start, end), 0.0, far);
     start -= increment * dither;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse; //Thank you to BuilderB0y for showin me this. 
@@ -120,5 +61,3 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     return color * transmittance + scattered;
 }
-
-#include "iceFog.glsl"

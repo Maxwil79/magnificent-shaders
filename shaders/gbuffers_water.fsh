@@ -20,6 +20,7 @@ uniform sampler2D tex;
 uniform sampler2D noisetex;
 
 uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferModelView;
 
 uniform float frameTimeCounter;
 

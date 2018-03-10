@@ -7,7 +7,7 @@ float better_fresnel(in vec3 viewVector, in vec3 normal) {
     float fresnel = (n0*cti-ctt)/(n0*cti+ctt);
     fresnel*=fresnel;
     float fresnel2 = (ctt-n0*cti)/(n0*cti+ctt);
-    fresnel =.75*(fresnel+fresnel2*fresnel2);
+    fresnel =.5*(fresnel+fresnel2*fresnel2);
     return fresnel;
 }
 
@@ -37,7 +37,7 @@ vec3 reflection(in vec3 view, in vec3 viewVector) {
     vec3 direction = reflect(viewPosition.xyz, normal);
     vec3 direction1 = mat3(gbufferModelViewInverse) * reflect(viewPosition.xyz, normal);
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 64.0, 4.0)) {
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
         reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
         continue;
     }

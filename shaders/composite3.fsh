@@ -38,6 +38,9 @@ uniform float viewHeight, viewWidth;
 uniform float frameTimeCounter;
 uniform float sunAngle;
 
+uniform float centerDepthSmooth;
+uniform float aspectRatio;
+
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
 uniform mat4 gbufferProjectionInverse, gbufferModelViewInverse;
@@ -105,6 +108,33 @@ vec3 clampNormal(vec3 n, vec3 v){
     return dot(n, v) >= 0.0 ? cross(cross(v, n), v) : n;
 }
 
+vec3 DOF(in float focal) {
+    float focus = linearizeDepth(centerDepthSmooth);
+    float depth = linearizeDepth(texture(depthtex0, textureCoordinate).r);
+    float aperture = 0.75 / 6.5;
+    float coc = aperture * (abs(depth - focus) / abs(depth)) * ((aperture * gbufferProjection[1].y) / abs(focus - (aperture * gbufferProjection[1].y)));
+	float cocDiam = aperture * gbufferProjection[1].y * (abs(depth - focus) / abs(depth)) * (focal / abs(focus - focal));
+
+    float lod = log2(3.0 * viewHeight * coc / sqrt(100.0) + 1.0);
+
+	int DOFSamples = 25;
+
+    vec3 result = vec3(0.0);
+    for (int i = 0; i < DOFSamples; i++) {
+		for (int j = 0; j < DOFSamples; j++) {
+			vec2 sampleOffset = vec2(i, j) - 12.0;
+			vec2 tmp = abs(normalize(sampleOffset));
+			vec2 circle = sampleOffset * max(tmp.x, tmp.y);
+			circle.y *= aspectRatio;
+        	result += textureLod(colortex0, circle * 0.25 * coc + textureCoordinate, lod).rgb;
+		}
+    }
+    result /= DOFSamples*12;
+
+
+    return result;
+}
+
 void main() {
     color = texture(colortex0, textureCoordinate.st);
     float depth = texture(depthtex1, textureCoordinate.st).r;
@@ -123,6 +153,8 @@ void main() {
     vec4 world = gbufferModelViewInverse * view2;
     world /= world.w;
     world = gbufferPreviousProjection  * (gbufferPreviousModelView * world);
+
+    //color.rgb = DOF(0.6);
 
     //color = vec4(dot(normal, upVector) * 0.5 + 0.5);
 }
