@@ -16,7 +16,7 @@
 #define texture2DLod(sampler, vec2, float) textureLod(sampler, vec2, float)
 #define varying in
 
-#define FogSteps 16 //[1 2 4 8 16 32 64 128 256 512 1024] Higher means higher quality but less performance.
+#define FogSteps 6 //[1 2 4 6 8 16 32 64 128 256 512 1024] Higher means higher quality but less performance.
 
 /*DRAWBUFFERS: 03*/
 layout (location = 0) out vec4 color;
@@ -244,7 +244,7 @@ void main() {
     #endif
 
     #ifdef VolumetricFog
-    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, 7e4), 1.0), AccumulationStrength);
+    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, 2e2), 1.0), AccumulationStrength);
     #else
     volume = vec4(1.0);
     #endif

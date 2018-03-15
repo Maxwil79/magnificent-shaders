@@ -9,13 +9,7 @@
 layout (location = 0) out vec4 color;
 layout (location = 1) out vec4 SsAo;
 
-/*
-const int colortex0Format = RGBA16F;
-const int colortex1Format = RGBA32F;
-const int colortex4Format = RGBA32F;
-const int colortex5Format = RGBA16F;
-const int colortex7Format = RGB16F;
-*/
+const bool colortex5MipmapEnabled = true;
 
 const float pi  = 3.14159265358979;
 
@@ -90,6 +84,14 @@ vec3 blackbody(float t){
 
 #include "lib/decode.glsl"
 
+#include "lib/water/waterShadow.glsl"
+
+#include "lib/raysphereIntersections/raysphereIntersection.glsl"
+#include "lib/atmosphere/physicalAtmosphere.glsl"
+
+#include "lib/atmosphere/physicalSun.glsl"
+#include "lib/atmosphere/physicalMoon.glsl"
+
 #include "lib/util.glsl"
 
 #include "lib/rays/rayTracers.glsl"
@@ -137,7 +139,7 @@ float lerp(float v0, float v1, float t) {
   return (1 - t) * v0 + t * v1;
 }
 
-#include "lib/light/ssao.glsl"
+#include "lib/light/shading.glsl"
 
 #define getLandMask(x) (x < 1.0)
 
@@ -146,7 +148,7 @@ void main() {
     float depth = texture(depthtex1, textureCoordinate.st).r;
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
 
-    color.rgb = pow(color.rgb, vec3(2.2));
+    //color.rgb = pow(color.rgb, vec3(2.2));
 
     vec4 view = vec4(vec3(textureCoordinate.st, depth) * 2.0 - 1.0, 1.0);
     view = gbufferProjectionInverse * view;
@@ -159,7 +161,20 @@ void main() {
     vec4 world = gbufferModelViewInverse * view2;
     world /= world.w;
 
-    vec3 normal = mat3(gbufferModelView) * decodeNormal3x16(texture(colortex4, textureCoordinate.st).g);
+	mat3 backPosition;
+	backPosition[0] = vec3(textureCoordinate, depth);
+	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
 
-    SsAo = vec4(ssao(view2.xyz, normal), 1.0, 1.0, 1.0); 
+    vec3 sun = calculateSun(sunVector2, normalize(view.xyz));
+    vec3 moon = calculateMoon(moonVector2, normalize(view.xyz));
+    vec3 background = sun + moon; 
+
+    vec3 shadows;
+
+    color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz), textureLod(colortex5, textureCoordinate.st, 1).x), 1.0);
+    if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(mat3(gbufferModelViewInverse) * backPosition[1]), sunVector, moonVector);
+
+    //if(id == 8.0 || id == 9.0) color = vec4(decodeNormal3x16(texture(colortex1, textureCoordinate.st).r) * mat3(gbufferModelView), 1.0);
+
+    //color = vec4(dot(normal, upVector) * 0.5 + 0.5);
 }

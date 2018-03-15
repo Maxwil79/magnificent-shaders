@@ -27,7 +27,7 @@ const mat2x3 sky_coefficientsScattering  = mat2x3(sky_coefficientRayleigh, sky_c
 const mat2x3 sky_coefficientsAttenuation = mat2x3(sky_coefficientRayleigh + sky_coefficientOzone, sky_coefficientMie * 1.11); // commonly called the extinction coefficient
 
 const vec3 sunColor  = blackbody(SunTemperature) * sunIlluminanceValue;
-const vec3 moonColor = sunColor * 45e-7;
+const vec3 moonColor = sunColor * 7e-5;
 
 const vec3 rayleighScatteringCoefficient = vec3(4.593e-6, 1.097e-5, 2.716e-5);
 const vec3      mieScatteringCoefficient = vec3(2.5e-5); //Good default

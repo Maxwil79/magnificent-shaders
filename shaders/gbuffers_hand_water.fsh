@@ -33,5 +33,5 @@ const int noiseResInverse = 1 / noiseTextureResolution;
 void main() {
     color = texture(tex, textureCoordinate.st);
 
-    packedData = vec4(encode2x16(sqrt(lightmapCoordinate)), encodeNormal3x16(vertexNormal * mat3(gbufferModelViewInverse)), floor(idData + 0.5) / 65535.0, 1.0);
+    packedData = vec4(encode2x16(sqrt(lightmapCoordinate)), encodeNormal3x16(mat3(gbufferModelViewInverse) * vertexNormal), floor(idData + 0.5) / 65535.0, 1.0);
 }

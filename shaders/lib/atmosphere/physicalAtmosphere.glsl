@@ -63,13 +63,13 @@ vec3 get_atmosphere_transmittance(vec3 sunVector, vec3 upVector, vec3 moonVector
 }
 
 vec3 get_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonVector){
-	vec3 atmos = sky_atmosphere(background, viewVector, sunVector, moonVector, sunColor * 1e-1, moonColor * 5e0);
+	vec3 atmos = sky_atmosphere(background, viewVector, sunVector, moonVector, sunColor * 1e-1, moonColor);
 
 	return atmos;
 }
 
 vec3 get_atmosphere_ambient(vec3 background, vec3 viewVector, vec3 sunVector, in vec3 moonVector){
-	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor * 5e0) * vec3(0.5, 0.7, 0.9);
+	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor) * vec3(0.5, 0.7, 0.9);
 
 	return atmos;
 }

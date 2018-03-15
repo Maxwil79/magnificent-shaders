@@ -57,16 +57,7 @@ void main() {
 
     normals = normalize(gl_NormalMatrix * gl_Normal);
 
-	#ifdef HandFovOverride
-	mat4 handProjection = generateProjectionMatrix(radians(HandFOV), aspectRatio, -near, -far);
-	#else
-	mat4 handProjection = gbufferProjection;
-	#endif
-
 	vec4 viewSpacePosition = gl_ModelViewMatrix * inPosition;
-	#ifndef CorrectHandProjection
-	gl_Position			   = ftransform();
-	#else
-	gl_Position            = handProjection     * viewSpacePosition;
-	#endif
+
+	gl_Position            = (mat3x3(gl_ModelViewMatrix) * gl_Vertex.xyz + gl_ModelViewMatrix[3].xyz).xyzz * vec4(gl_ProjectionMatrix[0].x, gl_ProjectionMatrix[1].y, gl_ProjectionMatrix[2].zw) + gl_ProjectionMatrix[3];
 }

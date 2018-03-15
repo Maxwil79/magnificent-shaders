@@ -130,7 +130,7 @@ float getCaustics(in vec3 position) {
 */
 #include "distortion.glsl"
 
-vec3 blockLightColor = 0.025 * blackbody(Torch_Temperature);
+vec3 blockLightColor = 0.005 * blackbody(Torch_Temperature);
 
 const vec2[16] diskOffset = vec2[16](
 	vec2(0.9553798f, 0.08792616f),
@@ -165,7 +165,9 @@ vec3 ScreenSpaceShadows() {
     return vec3(0.0);
 }
 
-vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast, in vec3 viewVector) {
+//#define WiP_SSAO //Darkens the shadows a little bit to fix brightness. Slows the game down a bit.
+
+vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast, in vec3 viewVector, in float ssao) {
 
     mat4 shadowMVP = shadowProjection * shadowModelView;
     vec4 shadowPos  = shadowMVP * vec4(world, 1.0);
@@ -227,16 +229,22 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     if(waterShadowCast == 1.0) shadows *= waterShadow;
     #endif
 
-    vec3 normal = decodeNormal3x16(texture(colortex4, textureCoordinate.st).g) * mat3(gbufferModelView);
+    vec3 normal = decodeNormal3x16(texture(colortex4, textureCoordinate.st).g);
 
     float shadowCast = float(texture(shadowtex0, shadowPos.st).r);
 
-    float NdotL = dot(mat3(gbufferModelViewInverse) * normal,lightVector);
+    float NdotL = dot(normal,lightVector);
     float NdotV = dot(normal,viewVector);
 
     vec3 H = normalize(lightVector+viewVector);
     float NdotH = dot(normal,H);
     float LdotH = dot(lightVector,H);
+
+	#ifdef WiP_SSAO
+	float ao = (pow(ssao, 4.0) / 3.0);
+	#else
+	float ao = 1.0;
+	#endif
 
     float diffuse = max(0.0, NdotL);
     if(id == 51.0) diffuse = 1.0;
@@ -246,23 +254,25 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
 
+	vec3 skylight = pow(lightmap.y, 5.0) * (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector)) * ao;
+
+    lighting = skylight + lighting;
     lighting = (get_atmosphere_transmittance(sunVector, mat3(gbufferModelViewInverse) * upVector, moonVector) * diffuse) * shadows + lighting;
     lighting = blockLightColor * pow(lightmap.x, Attenuation) + lighting;
-    lighting = (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector)) * pow(lightmap.y, 5.0) + lighting;
 
     vec3 emission = color * 0.15;
     if (id == 10.0 || id == 11.0 || id == 51.0 || id == 89.0) {
-        emission *= sqrt(dot(color.rgb, color.rgb)) / 50.0;
+        emission *= sqrt(dot(color.rgb, color.rgb)) * 0.25;
     } else if (id == 50.0) {
-        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 0.0005) / 10.0;
+        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 0.0005) * 0.05;
     } else if (id == 62.0 || id == 94.0 || id == 149.0) {
          emission *= max(color.r * 100.6 - 0.6, 0.0) * abs(dot(color.rgb, vec3(1.0 / 3.0)) - color.r);
     } else if (id == 76.0 || id == 213.0) {
-         emission *= max(color.r * 1.6 - 0.6, 0.0) * 0.0005;
+         emission *= max(color.r * 1.6 - 0.6, 0.0) * 0.05;
     } else if (id == 169.0) {
-        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 2.0) / 100.0;
+        emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 2.0) * 0.05;
     } else if (id == 124.0) {
-        emission *= sqrt(max(dot(color.rgb, color.rgb) * 1.01 - 0.01, 0.0));
+        emission *= sqrt(max(dot(color.rgb, color.rgb) * 1.01 - 0.01, 0.0)) * 0.05;
     } else {
         emission *= 0.0;
     }

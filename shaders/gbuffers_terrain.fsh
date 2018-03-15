@@ -23,6 +23,6 @@ uniform mat4 gbufferProjectionInverse, gbufferModelViewInverse;
 
 void main() {
     color = texture(tex, textureCoordinate.st) * tint;
-    packedData = vec4(encode2x16(lightmapCoordinate), encodeNormal3x16(normals * mat3(gbufferModelViewInverse)), floor(idData + 0.5) / 65535.0, 1.0);
+    packedData = vec4(encode2x16(lightmapCoordinate), encodeNormal3x16(mat3(gbufferModelViewInverse) * normals), floor(idData + 0.5) / 65535.0, 1.0);
     //normal = vec4(normals * 0.5 + 0.5, 1.0);
 }

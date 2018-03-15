@@ -117,7 +117,7 @@ vec3 diffractionSpikes2(vec3 color) {
 	return color;
 }
 
-vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(0.75 / 6.5);
+vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.5 / 6.5);
 
 const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 

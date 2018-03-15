@@ -54,6 +54,8 @@ float water_fournierForandPhase(float theta, float mu, float n) {
     return result;
 }
 
+//#define AlternateWaterdepth //Uses an alternate, slightly weird, method for the water depth.
+
 vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
     const vec3 attenCoeff = acoeff + scoeff;
     #ifndef WiP_SwampWater
@@ -96,6 +98,11 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     float lengthOfIncrement = length(increment);
     vec3 sunlightConribution = lightColor;
     vec3 skylightContribution = skyLightColor;
+    #ifndef AlternateWaterdepth
+    float depth = stepSize;
+    #else
+    float depth;
+    #endif
     for (int i = 0; i < FogSteps; i++) {
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
@@ -104,6 +111,12 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         float shadowOpaque = float(tex0 > shadowPos.p - 0.000003);
         float shadowTransparent = float(tex1 > shadowPos.p - 0.000003);
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
+
+        #ifdef AlternateWaterdepth
+        float shadowDepthSample2 = tex0 - shadowPos.z + 0.0003;
+        depth += (shadowDepthSample2) * shadowProjectionInverse[2].z;
+        depth = clamp(depth, 0.0, 4e12);
+        #endif
 
         #ifdef WaterShadowEnable
         float shadowDepthSample = tex0 - shadowPos.z;
@@ -114,9 +127,9 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
-        transmittance *= exp(-(attenCoeff * density) * (stepSize));
+        transmittance *= exp(-attenCoeff * depth);
     } scattered *= scoeff;
-    scattered *= (1.0 - exp(-(attenCoeff * density) * (stepSize))) / (attenCoeff * density);
+    scattered *= (1.0 - exp(-attenCoeff *depth)) / (attenCoeff);
 
     return color * transmittance + scattered;
 }

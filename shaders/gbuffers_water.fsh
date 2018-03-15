@@ -47,5 +47,5 @@ void main() {
     if(isWater) normals = waterNormal(worldPosition.xyz, viewPosition.xyz*tbn);
 
     packedNormals = vec4(packNormal(normalize(normals)), 1.0, 1.0);
-    packedData = vec4(encode2x16(sqrt(lightmapCoordinate)), encodeNormal3x16(normals * mat3(gbufferModelViewInverse)), floor(idData + 0.5) / 65535.0, 1.0);
+    packedData = vec4(encode2x16(sqrt(lightmapCoordinate)), encodeNormal3x16(mat3(gbufferModelViewInverse) * normals), floor(idData + 0.5) / 65535.0, 1.0);
 }

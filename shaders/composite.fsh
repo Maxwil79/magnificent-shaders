@@ -171,7 +171,7 @@ void main() {
 
     vec3 shadows;
 
-    color.rgb = mix(color.rgb, getShading(transparents.rgb, world.xyz, id, shadows, normalize(view2.xyz)), transparents.a);
+    color.rgb = mix(color.rgb, getShading(transparents.rgb, world.xyz, id, shadows, normalize(view2.xyz), 1.0), transparents.a);
 
     color.a = encode3x16(shadows);
 }
