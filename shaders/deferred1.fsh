@@ -143,6 +143,27 @@ float lerp(float v0, float v1, float t) {
 
 #define getLandMask(x) (x < 1.0)
 
+float filtered(in sampler2D sampler, in vec2 coord) {
+    float result = 0.0;
+
+    float centerDepth = linearizeDepth(texture(depthtex1, coord).x);
+
+    for(int i = 0; i < 4; i++){
+        for(int j = 0; j < 4; j++){
+            vec2 offset = vec2(i, j) / vec2(viewWidth, viewHeight);
+            
+            float sampleDepth = texture(depthtex1, 2.75 * offset + coord).x;
+
+            float difference = abs(centerDepth - linearizeDepth(sampleDepth));
+
+            result += textureLod(sampler, (2.75 * offset) + coord, 0).x;
+        }
+    }
+    result /= 16;
+
+    return result;
+}
+
 void main() {
     color = texture(colortex0, textureCoordinate.st);
     float depth = texture(depthtex1, textureCoordinate.st).r;
@@ -171,7 +192,7 @@ void main() {
 
     vec3 shadows;
 
-    color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz), textureLod(colortex5, textureCoordinate.st, 1).x), 1.0);
+    color = vec4(getShading(color.rgb, world.xyz, id, shadows, normalize(view2.xyz), texture(colortex5, textureCoordinate.st).x), 1.0);
     if(!getLandMask(depth)) color.rgb = get_atmosphere(background, normalize(mat3(gbufferModelViewInverse) * backPosition[1]), sunVector, moonVector);
 
     //if(id == 8.0 || id == 9.0) color = vec4(decodeNormal3x16(texture(colortex1, textureCoordinate.st).r) * mat3(gbufferModelView), 1.0);

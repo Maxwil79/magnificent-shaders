@@ -23,7 +23,7 @@ float ssao (vec3 position, vec3 normal) {
         vec4 noise = hash42(vec2(i, dither));
         vec3 offset = normalize(noise.xyz * 2.0 - 1.0) * noise.w;
         if (dot(offset, normal) < 0.0) offset = -offset;
-        vec3 samplePosition = offset * 1.5 + position;
+        vec3 samplePosition = offset * 0.35 + position;
         samplePosition = viewSpaceToScreenSpace(samplePosition, gbufferProjection);
         float depth = texture(depthtex1, samplePosition.st).r;
 

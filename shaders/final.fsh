@@ -7,6 +7,15 @@ layout (location = 0) out vec4 color;
 uniform sampler2D colortex0;
 uniform sampler2D depthtex1;
 
+uniform float viewWidth, viewHeight;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+uniform sampler2D depthtex0;
+
 in vec2 textureCoordinate;
 
 // Tonemapping operator used in Uncharted 2.
@@ -116,8 +125,31 @@ vec3 tonemap(vec3 color) {
     return color * inversesqrt(color * color + 1.0);
 }
 
+vec3 motionBlur(
+	in sampler2D colorTexture,
+	in vec2      coord
+) {
+	vec4 position = vec4(coord, texture(depthtex0, coord).r, 1.0) * 2.0 - 1.0;
+	vec4 previousPosition = gbufferProjectionInverse * position; previousPosition /= previousPosition.w;
+	previousPosition = gbufferModelViewInverse * previousPosition;
+	previousPosition.xyz += cameraPosition - previousCameraPosition;
+	previousPosition = gbufferPreviousModelView * previousPosition;
+	previousPosition = gbufferPreviousProjection * previousPosition; previousPosition /= previousPosition.w;
+
+	vec2 velocity = position.xy - previousPosition.xy;
+	velocity *= 1.0 / 32;
+
+	vec3 color = vec3(0.0);
+	for (int i = 0; i < 32; i++) {
+		vec2 offset = velocity * i;
+		color += textureLod(colortex0, coord + offset, 0).rgb;
+	}
+
+	return color / 32;
+}
+
 void main() {
-    color = texture(colortex0, textureCoordinate.st);
+	color = texture(colortex0, textureCoordinate);
     float depth = texture(depthtex1, textureCoordinate.st).r;
 
 	float i = Version;

@@ -70,7 +70,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
-    vec3 skyLightColor = vec3(0.0);
+    vec3 skyLightColor = (lightmap.y * get_atmosphere_ambient(vec3(0.0), vec3(0.0), mat3(gbufferModelViewInverse) * sunVector, mat3(gbufferModelViewInverse) * moonVector)) * pi;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= FogSteps;
@@ -86,7 +86,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 	vec3 scattered  = vec3(0.0) * transmittance;
 
     vec3 increment = (end - start) / FogSteps;
-    increment /= distance(start, end) / clamp(distance(start, end), 0.0, far);
+    //increment /= distance(start, end) / clamp(distance(start, end), 0.0, 5.0);
     start -= increment * dither;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse; //Thank you to BuilderB0y for showin me this. 
@@ -114,7 +114,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
         #ifdef AlternateWaterdepth
         float shadowDepthSample2 = tex0 - shadowPos.z + 0.0003;
-        depth += (shadowDepthSample2) * shadowProjectionInverse[2].z;
+        depth += (shadowDepthSample2 * shadowProjectionInverse[2].z) / FogSteps;
         depth = clamp(depth, 0.0, 4e12);
         #endif
 

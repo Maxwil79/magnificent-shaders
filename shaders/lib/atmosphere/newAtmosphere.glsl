@@ -55,7 +55,7 @@ vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonV
 	vec3  iIncrement = viewVector * iStepSize;
 	vec3  iPosition  = iIncrement * 0.5 + viewPosition;
 
-	vec2 phase = sky_phase(dot(viewVector, sunVector), sky_mieg);
+	vec2 phase = sky_phase(dot(viewVector, mix(moonVector, sunVector, float(sunAngle < 0.5))), sky_mieg);
 
 	vec3 scatteringSun  = vec3(0.0);
 	vec3 scatteringMoon = vec3(0.0);

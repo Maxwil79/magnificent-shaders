@@ -1,7 +1,7 @@
 #version 420
 #line 2
 
-#define WavePOM
+//#define WavePOM
 
 /*DRAWBUFFERS: 214*/
 layout (location = 0) out vec4 color;

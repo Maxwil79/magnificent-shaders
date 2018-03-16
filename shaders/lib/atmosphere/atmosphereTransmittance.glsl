@@ -2,10 +2,10 @@ vec3 atmosphereTransmittance(vec3 rayVector, vec3 upVector) {
     const int steps = skyQuality_I;
 
     vec3 startPos = upVector * (cameraPosition.y + planetRadius);
-    float stepSize  = dot(startPos, sunVector);
+    float stepSize  = dot(startPos, rayVector);
           stepSize  = sqrt((stepSize * stepSize) + atmosphereRadiusSquared - dot(startPos, startPos)) - stepSize;
           stepSize /= steps;
-    vec3  increment = sunVector * stepSize;
+    vec3  increment = rayVector * stepSize;
     vec3  position  = -0.5 * increment + startPos;
 
     vec2 opticalDepth = vec2(0.0);

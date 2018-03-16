@@ -22,14 +22,14 @@ out vec3 moonVector;
 #define unsigned(a) ((a * 0.5) + 0.5)
 
 void main() {
-    gl_Position = vec4(signed(inPosition), 0.0, 1.0);
+    gl_Position = vec4(inPosition.xy * 2.0 - 1.0, 0.0, 1.0);
 
-    sunVector = normalize(sunPosition); 
-    moonVector = normalize(moonPosition); 
+    sunVector = mat3(gbufferModelViewInverse) * sunPosition         * 0.01; 
+    moonVector = mat3(gbufferModelViewInverse) * moonPosition        * 0.01; 
     lightVector = normalize(shadowLightPosition);
 
     lightVector = (sunAngle > 0.5) ? moonVector : sunVector;
     worldLightVector = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 
-    textureCoordinate = inTexCoord;
+    textureCoordinate = inPosition.xy;
 }

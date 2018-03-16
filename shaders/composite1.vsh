@@ -34,7 +34,7 @@ float pow2(in float n)  { return n * n; }
 #define clamp01(n) clamp(n, 0.0, 1.0)
 
 void main() {
-    gl_Position = vec4(signed(inPosition), 0.0, 1.0);
+    gl_Position = vec4(inPosition.xy * 2.0 - 1.0, 0.0, 1.0);
 
     sunVector = normalize(sunPosition); 
     moonVector = normalize(moonPosition); 
@@ -46,7 +46,7 @@ void main() {
     lightVector = (sunAngle > 0.5) ? moonVector : sunVector;
     worldLightVector = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 
-    textureCoordinate = inTexCoord;
+    textureCoordinate = inPosition.xy;
 
     vec2 noonNight   = vec2(0.0);
      noonNight.x = (0.25 - clamp(sunAngle, 0.0, 0.5));
