@@ -1,17 +1,15 @@
-#define MaxHeight 64.0 //[4.0 8.0 16.0 32.0 64.0 128.0 256.0 512.0]
-
 float groundFog(vec3 worldPos) {
-	worldPos.y -= MaxHeight;
+	worldPos.y -= vl_Height;
 	float density = 1.0;
-	density *= exp(-worldPos.y / 2.0);
-    density = clamp(density, 0.0, 2.4);
+	density *= exp(-worldPos.y / 5.0);
+    density = clamp(density, 0.0, 6.2);
 	return density;
 }
 
-#define STEPS 5 //[1 2 3 4 5 10 15 20 25 30 35 40 45 65 70 75] Higher steps equals more quality, but lower FPS. Lower numbers look better with a lower VolumeDistanceMultiplier.
 #define VolumeDistanceMultiplier 0.75 //[0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0] The multiplier of which the Volume distance uses to multiply far by.
 #define VolumeDistance far*VolumeDistanceMultiplier
 #define intensityMult 1e0 //[1e0 2e0 3e0 4e0 5e0 6e0 7e0 8e0 9e0 1e1] The intensity multiplier of the VL.
+#define VolumetricLightQuality 1 //[1 2 3 4 5]
 
 //float dither=bayer16x16( ivec2(texcoord*vec2(viewWidth,viewHeight)) );
 
@@ -22,12 +20,24 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));
     if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
 
+    #if VolumetricLightQuality == 1
+    int steps = 1;
+    #elif VolumetricLightQuality == 2
+    int steps = 8;
+    #elif VolumetricLightQuality == 3
+    int steps = 32;
+    #elif VolumetricLightQuality == 4
+    int steps = 64;
+    #elif VolumetricLightQuality == 5
+    int steps = 128;
+    #endif
+
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
     vec3 skyLightColor = vec3(0.0);
 
 	vec3 rayVec  = end - start;
-	     rayVec /= STEPS;
+	     rayVec /= steps;
 	float stepSize = length(rayVec);
 
 	float VoL   = dot(normalize(end - start), lightVector);
@@ -41,7 +51,7 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;
 
-    vec3 increment = (end - start) / STEPS;
+    vec3 increment = (end - start) / steps;
     increment /= distance(start, end) / clamp(distance(start, end), 0.0, VolumeDistance);
     start -= increment * dither;
 
@@ -54,8 +64,11 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
     float lengthOfIncrement = length(increment);
     vec3 sunlightConribution = lightColor;
     vec3 skylightContribution = skyLightColor;
-    for (int i = 0; i < STEPS; i++) {
+    for (int i = 0; i < steps; i++) {
         curPos.xyz += increment;
+
+        float gf = groundFog((mat3(shadowModelViewInverse) * (mat3(shadowProjectionInverse) * curPos.xyz + shadowProjectionInverse[3].xyz) + shadowModelViewInverse[3].xyz) + cameraPosition);
+
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
         float tex0 = texture(shadowtex0, shadowPos.st).r;
         float tex1 = texture(shadowtex1, shadowPos.st).r;
@@ -72,7 +85,7 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
         if(waterShadowCast == 1.0) shadow *= waterShadow;
         #endif
 
-        scattered += (shadow + skylightContribution) * transmittance;
+        scattered += ((shadow + skylightContribution) * transmittance) * gf;
         transmittance *= exp(-(attenCoeff) * (stepSize));
     } scattered *= scoeff;
     //scattered *= waterAbsorb;

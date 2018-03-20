@@ -41,9 +41,9 @@ vec3 getWaveParallax(
 vec3 getParallax(in vec3 world, in vec3 view) {
     const int steps = ParallaxWaveSamples;
 
-    const float height = PARALLAX_DEPTH;
+    const float height = 1.5;
 
-    view.xy = view.xy * steps / length(view) * PARALLAX_DEPTH;
+    view.xy = view.xy * steps / length(view) * 1.5;
 
     float waveHeight = getWaves(world) * height;
 
@@ -67,7 +67,7 @@ vec3 parallax(in vec3 world, in vec3 view) {
 }
 
 vec3 waterNormal(in vec3 world, in vec3 view) {
-	const float sampleDist = 0.005;
+	const float sampleDist = 0.0025;
 	#ifdef WavePOM
 	vec3 newWorld = parallax(world, normalize(view.xyz));
 	#else

@@ -55,25 +55,32 @@ float water_fournierForandPhase(float theta, float mu, float n) {
 }
 
 //#define AlternateWaterdepth //Uses an alternate, slightly weird, method for the water depth.
+#define WaterQuality 1 //[1 2 3 4 5]
 
 vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
     const vec3 attenCoeff = acoeff + scoeff;
-    #ifndef WiP_SwampWater
-    float density = 1.0;
-    #else
-    float density = WaterfogDensity;
-    #endif
 
+    #if WaterQuality == 1
+    int steps = 1;
+    #elif WaterQuality == 2
+    int steps = 8; 
+    #elif WaterQuality == 3
+    int steps = 32;
+    #elif WaterQuality == 4
+    int steps = 64;
+    #elif WaterQuality == 5
+    int steps = 128;
+    #endif
 
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));
     if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
-    vec3 skyLightColor = (lightmap.y * get_atmosphere_ambient(vec3(0.0), vec3(0.0), mat3(gbufferModelViewInverse) * sunVector, mat3(gbufferModelViewInverse) * moonVector)) * pi;
+    vec3 skyLightColor = vec3(0.0);
 
 	vec3 rayVec  = end - start;
-	     rayVec /= FogSteps;
+	     rayVec /= steps;
 	float stepSize = length(rayVec);
 
 	float VoL   = dot(normalize(end - start), lightVector);
@@ -85,7 +92,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;
 
-    vec3 increment = (end - start) / FogSteps;
+    vec3 increment = (end - start) / steps;
     //increment /= distance(start, end) / clamp(distance(start, end), 0.0, 5.0);
     start -= increment * dither;
 
@@ -103,7 +110,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     #else
     float depth;
     #endif
-    for (int i = 0; i < FogSteps; i++) {
+    for (int i = 0; i < steps; i++) {
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
         float tex0 = texture(shadowtex0, shadowPos.st).r;
@@ -114,7 +121,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
         #ifdef AlternateWaterdepth
         float shadowDepthSample2 = tex0 - shadowPos.z + 0.0003;
-        depth += (shadowDepthSample2 * shadowProjectionInverse[2].z) / FogSteps;
+        depth += (shadowDepthSample2 * shadowProjectionInverse[2].z) / steps;
         depth = clamp(depth, 0.0, 4e12);
         #endif
 
@@ -133,5 +140,3 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     return color * transmittance + scattered;
 }
-
-#include "iceFog.glsl"

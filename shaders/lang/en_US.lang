@@ -1,0 +1,18 @@
+# Water
+option.WaterQuality=Water Quality
+
+value.WaterQuality.1=Low
+value.WaterQuality.2=Medium
+value.WaterQuality.3=High
+value.WaterQuality.4=Very High
+value.WaterQuality.5=Ultra
+
+# Atmosphere
+option.VolumetricLightQuality=Volumetric Light Quality
+option.VolumetricFog=Volumetric Fog 
+
+value.VolumetricLightQuality.1=Low
+value.VolumetricLightQuality.2=Medium
+value.VolumetricLightQuality.3=High
+value.VolumetricLightQuality.4=Very High
+value.VolumetricLightQuality.5=Ultra

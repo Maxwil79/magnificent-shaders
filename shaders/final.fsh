@@ -1,6 +1,6 @@
 #version 420
 
-#define TonemapVersion 0 //[0 1 2] 0 = A Zombye tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
+#define TonemapVersion 2 //[0 1 2] 0 = A Zombye tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
 
 layout (location = 0) out vec4 color;
 

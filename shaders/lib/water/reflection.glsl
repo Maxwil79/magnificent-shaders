@@ -11,7 +11,7 @@ float better_fresnel(in vec3 viewVector, in vec3 normal) {
     return fresnel;
 }
 
-vec3 reflection(in vec3 view, in vec3 viewVector) {
+vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     vec3 reflection = vec3(0.0);
     int i = 0;
     vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
@@ -21,6 +21,7 @@ vec3 reflection(in vec3 view, in vec3 viewVector) {
     int samples = SsrSamples;
     vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
     float skyLight = pow(decode2x16(texture(colortex4, textureCoordinate.st).r).y, 7.0);
+    vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
     vec3 waterNormal = unpackNormal(texture(colortex1, textureCoordinate.st).rg);
 
     vec3 normal;
@@ -39,13 +40,14 @@ vec3 reflection(in vec3 view, in vec3 viewVector) {
     vec4 hitPosition;
     if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
         reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
+        //reflection += VL(textureLod(colortex0, hitPosition.xy, 0).rgb, hitPosition.xyz, vec3(0.0), lightmap, world.xyz, vlIntensity) * fresnelR;
         continue;
     }
 
     reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2) * fresnelT;
     }
     vec3 moon = (get_atmosphere_transmittance(sunVector, upVector, moonVector)) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, roughnessSquared, 4e1))) * shadows;
-    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, roughnessSquared, 4e1))) * shadows;
+    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.095*0.095, 4e1))) * shadows;
     vec3 backGround = specular + moon;
     reflection += backGround;
     

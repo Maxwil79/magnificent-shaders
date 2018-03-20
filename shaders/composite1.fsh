@@ -5,7 +5,7 @@
 
 #define Reflections
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
-    #define RoughnessValue 0.08 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1 0.15 0.2 0.25 0.3]
+    #define RoughnessValue 0.095 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1 0.15 0.2 0.25 0.3]
 
 #define RefractionMode 1 //[0 1] 0 = no refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet.
 
@@ -14,9 +14,6 @@
 
 #define texture2D(sampler, vec2) texture(sampler, vec2)
 #define texture2DLod(sampler, vec2, float) textureLod(sampler, vec2, float)
-#define varying in
-
-#define FogSteps 6 //[1 2 4 6 8 16 32 64 128 256 512 1024] Higher means higher quality but less performance.
 
 /*DRAWBUFFERS: 03*/
 layout (location = 0) out vec4 color;
@@ -32,7 +29,7 @@ in vec3 moonVector;
 in vec3 sunVector2;
 in vec3 moonVector2;
 
-varying vec4 timeVector;
+in vec4 timeVector;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
@@ -192,13 +189,18 @@ vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
     return result / 14;
 }
 
-#include "lib/water/reflection.glsl"
+float noonLight = 1e0;
+float horizonLight = 1e3;
+float nightLight = 2e2;
+
+float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);
 
 #include "lib/water/refraction.glsl"
 
-#ifdef VolumetricFog
 #include "lib/light/volumetrics.glsl"
-#endif
+
+#include "lib/water/reflection.glsl"
+
 /*
 vec4 Fog(vec3 viewVector) {
     vec4 result = vec4(0.0);
@@ -240,11 +242,11 @@ void main() {
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);
     #ifdef Reflections
-    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz), normalize(mat3(gbufferModelViewInverse) * backPosition[1])), 1.0);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color += vec4(reflection(normalize(view.xyz), normalize(mat3(gbufferModelViewInverse) * backPosition[1]), world.xyz), 1.0);
     #endif
 
     #ifdef VolumetricFog
-    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, 2e2), 1.0), AccumulationStrength);
+    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, vlIntensity), 1.0), AccumulationStrength);
     #else
     volume = vec4(1.0);
     #endif
