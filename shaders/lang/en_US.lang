@@ -32,6 +32,6 @@ value.ShadowType.2=VPS
 # Post
 option.TonemapVersion=Tonemap
 
-value.TonemapVersion.0=Zombye's Tonemap
+value.TonemapVersion.0=ACES Tonemap
 value.TonemapVersion.1=Uncharted 2
 value.TonemapVersion.2=Jodie's Tonemap

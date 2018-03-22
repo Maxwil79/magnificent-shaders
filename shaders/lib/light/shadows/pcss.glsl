@@ -1,6 +1,5 @@
     for(int i = 0; i < 7; i++) {
         for(int j = 0; j < 7; j++) {
-            shadowPos.xy /= ShadowDistortion(shadowPos.st);
 		    vec2 sampleOffset = vec2(i, j) - 3;
 			vec2 tmp = abs(normalize(sampleOffset));
 			vec2 circle = sampleOffset * max(tmp.x, tmp.y);

@@ -91,7 +91,6 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
         scattered += ((shadow + skylightContribution) * transmittance) * gf;
         transmittance *= exp(-(attenCoeff) * (stepSize));
     } scattered *= scoeff;
-    //scattered *= waterAbsorb;
     scattered *= (1.0 - exp(-(attenCoeff) * (stepSize))) / (attenCoeff);
 
     return color * transmittance + (scattered * intensity);

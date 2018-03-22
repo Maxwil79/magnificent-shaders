@@ -44,3 +44,5 @@ vec3 viewSpaceToScreenSpace(vec3 position, mat4 projection) {
 float minof(vec2 x) { return min(x.x, x.y); }
 float minof(vec3 x) { return min(min(x.x, x.y), x.z); }
 float minof(vec4 x) { x.xy = min(x.xy, x.zw); return min(x.x, x.y); }
+
+#define saturate(x) clamp(x, 0.0, 1.0)

@@ -1,6 +1,6 @@
 #version 420
 
-#define TonemapVersion 0 //[0 1 2] 0 = A Zombye tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
+#define TonemapVersion 0 //[0 1 2] 0 = ACES tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
 
 layout (location = 0) out vec4 color;
 
@@ -9,6 +9,7 @@ uniform sampler2D depthtex1;
 
 uniform float viewWidth, viewHeight;
 uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -17,6 +18,8 @@ uniform mat4 gbufferPreviousProjection;
 uniform sampler2D depthtex0;
 
 in vec2 textureCoordinate;
+
+#include "lib/util.glsl"
 
 // Tonemapping operator used in Uncharted 2.
 // Source: http://filmicgames.com/archives/75
@@ -39,6 +42,17 @@ vec3 tonemapUncharted2(
 	color *= whitescale;
 
 	return color;
+}
+
+//ACES tonemap
+vec3 ACESFilm(vec3 x)
+{
+    float a = 2.51f;
+    float b = 0.1f;
+    float c = 3.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x*(a*x+b))/(x*(c*x+d)+e));
 }
 
 //This belongs to Jodie
@@ -85,18 +99,6 @@ vec3 adjustSaturation(inout vec3 color, in float saturation)
 
 #define Version 0.1
 
-vec3 Uncharted2Tonemap(vec3 x)
-{
-	float A = 0.15;
-	float B = 0.50;
-	float C = 0.10;
-	float D = 0.20;
-	float E = 0.02;
-	float F = 0.30;
-	float W = 11.2;
-    return x*((vec3(A+C+B)+D+E)/(vec3(A+B)+D*F))-E/F;
-}
-
 vec3 jodieRoboTonemap(vec3 c){
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
     vec3 tc = c * inversesqrt( c * c + 1. );
@@ -109,43 +111,8 @@ vec3 jodieReinhardTonemap(vec3 c){
     return mix(c / ( l + 1. ), tc, tc);
 }
 
-vec4 ps_main()
-{
-     vec3 texColor = texture(colortex0, textureCoordinate.st).rgb;
-     //texColor = vec3(16);  // Hardcoded Exposure Adjustment
-     float ExposureBias = 2.0f;
-     vec3 curr = Uncharted2Tonemap(texColor);
-     vec3 whiteScale = 1.0f/Uncharted2Tonemap(texColor);
-     vec3 color = curr*whiteScale;
-     vec3 retColor = pow(color,vec3(1/2.2));
-     return vec4(retColor,1);
-}
-
 vec3 tonemap(vec3 color) {
     return color * inversesqrt(color * color + 1.0);
-}
-
-vec3 motionBlur(
-	in sampler2D colorTexture,
-	in vec2      coord
-) {
-	vec4 position = vec4(coord, texture(depthtex0, coord).r, 1.0) * 2.0 - 1.0;
-	vec4 previousPosition = gbufferProjectionInverse * position; previousPosition /= previousPosition.w;
-	previousPosition = gbufferModelViewInverse * previousPosition;
-	previousPosition.xyz += cameraPosition - previousCameraPosition;
-	previousPosition = gbufferPreviousModelView * previousPosition;
-	previousPosition = gbufferPreviousProjection * previousPosition; previousPosition /= previousPosition.w;
-
-	vec2 velocity = position.xy - previousPosition.xy;
-	velocity *= 1.0 / 32;
-
-	vec3 color = vec3(0.0);
-	for (int i = 0; i < 32; i++) {
-		vec2 offset = velocity * i;
-		color += textureLod(colortex0, coord + offset, 0).rgb;
-	}
-
-	return color / 32;
 }
 
 void main() {
@@ -155,7 +122,7 @@ void main() {
 	float i = Version;
 
 	#if TonemapVersion == 0
-    color.rgb = tonemap(color.rgb);
+    color.rgb = ACESFilm(color.rgb * 0.6);
 	#elif TonemapVersion == 1
 	color.rgb = tonemapUncharted2(color.rgb);
 	#elif TonemapVersion == 2

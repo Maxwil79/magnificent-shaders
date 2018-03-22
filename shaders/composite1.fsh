@@ -19,9 +19,8 @@
 #define texture2D(sampler, vec2) texture(sampler, vec2)
 #define texture2DLod(sampler, vec2, float) textureLod(sampler, vec2, float)
 
-/*DRAWBUFFERS: 03*/
+/*DRAWBUFFERS: 0*/
 layout (location = 0) out vec4 color;
-layout (location = 1) out vec4 volume;
 
 const float pi  = 3.14159265358979;
 
@@ -193,7 +192,7 @@ vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
 }
 
 float noonLight = 1e0;
-float horizonLight = 8e2;
+float horizonLight = 9.5e2;
 float nightLight = 2e2;
 
 float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);
@@ -251,9 +250,7 @@ void main() {
     #endif
 
     #ifdef VolumetricFog
-    volume = mix(texture(colortex3, world.xy / world.w * 0.5 + 0.5), vec4(VL(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz, vlIntensity), 1.0), AccumulationStrength);
-    #else
-    volume = vec4(1.0);
+    if(isEyeInWater == 0) color += vec4(VL(vec3(0.0), vec3(0.0), view.xyz, lightmap, world.xyz, vlIntensity), 1.0);
     #endif
 
     //color = vec4(dot(normal, upVector) * 0.5 + 0.5);

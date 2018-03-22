@@ -2,9 +2,8 @@
 
 //#define VolumetricFog //Enable this for VL. Not for gameplay.
 
-/*DRAWBUFFERS: 03*/
+/*DRAWBUFFERS: 0*/
 layout (location = 0) out vec4 color;
-layout (location = 1) out vec4 vl;
 
 const float pi  = 3.14159265358979;
 
@@ -128,16 +127,6 @@ void main() {
     world = gbufferPreviousProjection  * (gbufferPreviousModelView * world);
 
     //raytracer = texture(colortex3, textureCoordinate);
-
-    #ifdef VolumetricFog
-    vl = texture(colortex3, textureCoordinate);
-    #else
-    vl = vec4(1.0);
-    #endif
-
-    #ifdef VolumetricFog
-    if(isEyeInWater == 0) color = vl;
-    #endif
 
     //color = vec4(dot(normal, upVector) * 0.5 + 0.5);
 }
