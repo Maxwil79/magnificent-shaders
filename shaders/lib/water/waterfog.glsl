@@ -6,7 +6,7 @@ vec3 waterFog(vec3 color, float dist) {
     if(isEyeInWater == 1) shadows = 1.0;
 
     vec3 lightColor = vec3(0.0);
-    lightColor = vec3(get_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector)) / pi;
+    lightColor = vec3(get_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, 16)) / pi;
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
 
     vec3 depthColors = vec3(1.0);
@@ -55,13 +55,15 @@ float water_fournierForandPhase(float theta, float mu, float n) {
 }
 
 //#define AlternateWaterdepth //Uses an alternate, slightly weird, method for the water depth.
-#define WaterQuality 1 //[1 2 3 4 5]
+#define WaterQuality 1 //[0 1 2 3 4 5 6]
 
 vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
     const vec3 attenCoeff = acoeff + scoeff;
 
-    #if WaterQuality == 1
+    #if WaterQuality == 0
     int steps = 1;
+    #elif WaterQuality == 1
+    int steps = 4;
     #elif WaterQuality == 2
     int steps = 8; 
     #elif WaterQuality == 3
@@ -70,6 +72,8 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     int steps = 64;
     #elif WaterQuality == 5
     int steps = 128;
+    #elif WaterQuality == 6
+    int steps = 1024;
     #endif
 
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));

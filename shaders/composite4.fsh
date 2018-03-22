@@ -3,8 +3,11 @@
 #define BloomRange 4 //[2 4 6 8 16 32 64] Higher means more quality but lower FPS.
 #define ApertureBladeCount 5 //[2 3 4 5 6 7 8] Controls the amount of aperture blades.
 #define Aperture 0.8 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9] Controls the size of the aperture.
+
+//#define MC_RENDER_QUALITY // Values: 0.5, 0.70710677, 1.0, 1.4142135, 2.0
+
 //#define DifractionSpikes //Currently a little awkward.
-//#define HighexposureTinting //Enables the high exposure tint.
+#define HighexposureTinting //Enables the high exposure tint.
 
 
 /*DRAWBUFFERS: 074*/
@@ -121,6 +124,15 @@ vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.5 / 6.5);
 
 const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 
+vec3 lowlightDesaturate(vec3 color) {
+    const vec3 rodResponse = vec3(0.15, 0.50, 0.35); // Should sum to 1
+
+    float desaturated = dot(color, rodResponse);
+    color = mix(color, vec3(desaturated), exp2(-60000.0 * desaturated));
+
+    return color;
+}
+
 void main() {
     color = texture(colortex0, textureCoordinate);
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
@@ -131,7 +143,7 @@ void main() {
     bloomResult += bloom(4.0, (textureCoordinate - vec2(0.645, 0.26)) * 16.0);
 
     float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, lumacoeff);
-    float exposure = clamp(3.0 / averageBrightness, 1.5, 7e2);
+    float exposure = clamp(3.0 / averageBrightness, 1.5, 7e3);
 	exposure = mix(texture(colortex7, vec2(0.5)).r, exposure, frameTime / (mix(2.5, 0.25, float(exposure < texture(colortex7, vec2(0.5)).r)) + frameTime));
 
     smoothExposure = exposure;
@@ -140,8 +152,8 @@ void main() {
     vec3 highexposuretint = vec3(0.5, 0.8, 1.0);
     vec3 desaturateWeight = vec3(0.8, 0.6, 0.2);
     #ifdef HighexposureTinting
-    color.rgb = mix(color.rgb, dot(color.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
-    bloomPass.rgb = mix(bloomResult.rgb, dot(bloomResult.rgb, desaturateWeight) * highexposuretint, clamp(smoothExposure / 6.75e2, 0.0, 1.0));
+    color.rgb = lowlightDesaturate(color.rgb);
+    bloomPass.rgb = lowlightDesaturate(bloomPass.rgb);
     #endif
 
     vec4 diffraction = vec4(diffractionSpikes2(color.rgb), 1.0);

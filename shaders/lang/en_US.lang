@@ -1,18 +1,37 @@
 # Water
 option.WaterQuality=Water Quality
 
+value.WaterQuality.0=Very Low
 value.WaterQuality.1=Low
 value.WaterQuality.2=Medium
 value.WaterQuality.3=High
 value.WaterQuality.4=Very High
 value.WaterQuality.5=Ultra
+value.WaterQuality.6=Full Joey
 
 # Atmosphere
 option.VolumetricLightQuality=Volumetric Light Quality
 option.VolumetricFog=Volumetric Fog 
+option.VolumetricFogReflections=Volumetric Fog Reflections
 
+value.VolumetricLightQuality.0=Very Low
 value.VolumetricLightQuality.1=Low
 value.VolumetricLightQuality.2=Medium
 value.VolumetricLightQuality.3=High
 value.VolumetricLightQuality.4=Very High
 value.VolumetricLightQuality.5=Ultra
+value.VolumetricLightQuality.6=Full Joey
+
+# Lighting
+option.ShadowType=Shadow Type
+
+value.ShadowType.0=Hard
+value.ShadowType.1=Soft
+value.ShadowType.2=VPS
+
+# Post
+option.TonemapVersion=Tonemap
+
+value.TonemapVersion.0=Zombye's Tonemap
+value.TonemapVersion.1=Uncharted 2
+value.TonemapVersion.2=Jodie's Tonemap

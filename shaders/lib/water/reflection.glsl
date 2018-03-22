@@ -16,7 +16,7 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     int i = 0;
     vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r) * 2.0 - 1.0, 1.0);
     viewPosition /= viewPosition.w;
-    viewPosition = normalize(viewPosition);
+    vec3 viewDirection = normalize(viewPosition.xyz);
     vec3 viewVec3 = vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r);
     int samples = SsrSamples;
     vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
@@ -29,22 +29,22 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     float roughness = RoughnessValue;
     float roughnessSquared = roughness*roughness;
 
-    for(i = 0; i < samples; i++) {
-    normal = mix(clampNormal(waterNormal, view), normalize(hash33(view.xyz + i) * 2.0 - 1.0), roughnessSquared);
+    normal = clampNormal(waterNormal, view);
 
     float fresnelR = better_fresnel(view, normal);
-    float fresnelT = better_fresnel(view, normal);
     
-    vec3 direction = reflect(viewPosition.xyz, normal);
-    vec3 direction1 = mat3(gbufferModelViewInverse) * reflect(viewPosition.xyz, normal);
+    vec3 direction = reflect(viewDirection.xyz, normal);
+    vec3 direction1 = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, normal);
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 32.0, 4.0)) {
+        vec3 hitViewPositon = screenSpaceToViewSpace(hitPosition.xyz, gbufferProjectionInverse);
+        #if defined VolumetricFogReflections && defined VolumetricFog 
+        reflection += VL(textureLod(colortex0, hitPosition.xy, 0).rgb, viewPosition.xyz, hitViewPositon, lightmap, world.xyz, vlIntensity) * fresnelR;
+        #else
         reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
-        //reflection += VL(textureLod(colortex0, hitPosition.xy, 0).rgb, hitPosition.xyz, vec3(0.0), lightmap, world.xyz, vlIntensity) * fresnelR;
-        continue;
-    }
-
-    reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2) * fresnelT;
+        #endif
+    } else {
+    reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2, 8) * fresnelR;
     }
     vec3 moon = (get_atmosphere_transmittance(sunVector, upVector, moonVector)) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, roughnessSquared, 4e1))) * shadows;
     vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.095*0.095, 4e1))) * shadows;

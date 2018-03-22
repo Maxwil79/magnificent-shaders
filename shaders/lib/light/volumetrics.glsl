@@ -1,15 +1,14 @@
 float groundFog(vec3 worldPos) {
-	worldPos.y -= vl_Height;
+	worldPos.y -= vl_Height_Rayleigh;
 	float density = 1.0;
 	density *= exp(-worldPos.y / 5.0);
-    density = clamp(density, 0.0, 6.2);
+    density = clamp(density, 0.0005, 6.2);
 	return density;
 }
 
-#define VolumeDistanceMultiplier 0.75 //[0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0] The multiplier of which the Volume distance uses to multiply far by.
+#define VolumeDistanceMultiplier 3.0 //[0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0] The multiplier of which the Volume distance uses to multiply far by.
 #define VolumeDistance far*VolumeDistanceMultiplier
-#define intensityMult 1e0 //[1e0 2e0 3e0 4e0 5e0 6e0 7e0 8e0 9e0 1e1] The intensity multiplier of the VL.
-#define VolumetricLightQuality 1 //[1 2 3 4 5]
+#define VolumetricLightQuality 1 //[0 1 2 3 4 5 6]
 
 //float dither=bayer16x16( ivec2(texcoord*vec2(viewWidth,viewHeight)) );
 
@@ -20,8 +19,10 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
     lightmap = pow(lightmap, vec2(Attenuation, 5.0));
     if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
 
-    #if VolumetricLightQuality == 1
+    #if VolumetricLightQuality == 0
     int steps = 1;
+    #elif VolumetricLightQuality == 1
+    int steps = 4;
     #elif VolumetricLightQuality == 2
     int steps = 8;
     #elif VolumetricLightQuality == 3
@@ -30,6 +31,8 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
     int steps = 64;
     #elif VolumetricLightQuality == 5
     int steps = 128;
+    #elif VolumetricLightQuality == 6
+    int steps = 2048;
     #endif
 
     vec3 lightColor = vec3(0.0);

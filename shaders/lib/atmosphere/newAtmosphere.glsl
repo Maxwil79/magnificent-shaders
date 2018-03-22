@@ -42,8 +42,8 @@ vec3 sky_atmosphereTransmittance(vec3 position, vec3 direction, const float step
 	return exp(-sky_atmosphereOpticalDepth(position, direction, steps));
 }
 
-vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonVector, vec3 sunIlluminance, vec3 moonIlluminance) {
-	const int iSteps = 32;
+vec3 sky_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonVector, vec3 sunIlluminance, vec3 moonIlluminance, const int skySteps) {
+	const int iSteps = skySteps;
 	const int jSteps = 3;
 
 	vec3 viewPosition = vec3(0.0, planetRadius + cameraPosition.y, 0.0);

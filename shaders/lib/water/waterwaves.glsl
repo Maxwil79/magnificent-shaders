@@ -2,7 +2,7 @@
 
 #define WaveSteepness 0.9 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0] Lower causes the waves to be steeper, but will have more issues.
 #define WaveAmplitude 0.25 //[0.001 0.002 0.004 0.005 0.006 0.007 0.008 0.009 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0] Higher will cause the waves to have more amplitude, but will make some POM artifacts more noticable.
-#define WaveLength 3.0 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 15.0 20.0 25.0 30.0 35.0] Changes the length/scale of the waves.
+#define WaveLength 5.0 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 15.0 20.0 25.0 30.0 35.0] Changes the length/scale of the waves.
 #define WaveDirectionX 0.5 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0] 
 #define WaveDirectionY 0.75 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
@@ -30,7 +30,7 @@ float getWaves(in vec3 position)
 	vec2 p2 = (position.xz + position.y) + waveTime;
 
 	// Scale
-	p /= 64.0;
+	p /= 45.0 + WaveLength;
 	p2 /= 9.0 + WaveLength;
 
 	const float weightArray[numWaves] = float[numWaves] (
@@ -58,7 +58,7 @@ float getWaves(in vec3 position)
 		vec2(pArray[0].y * 3.0, pArray[0].x * 0.5),
 		vec2(pArray[1].y * 2.0, pArray[1].x * 1.0),
 		vec2(pArray[2].y * 1.7, pArray[2].x * 2.3),
-		vec2(pArray[3].y * 1.3, pArray[3].x * 0.3)
+		vec2(pArray[3].y * 0.0, pArray[3].x * 0.0)
 	);
 
 	const float weightArray2[numWaves] = float[numWaves] (

@@ -254,7 +254,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
 
-	vec3 skylight = pow(lightmap.y, 5.0) * (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector)) * ao;
+	vec3 skylight = pow(lightmap.y, 5.0) * (get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector, moonVector, 16)) * ao;
 
     lighting = skylight + lighting;
     lighting = (get_atmosphere_transmittance(sunVector, mat3(gbufferModelViewInverse) * upVector, moonVector) * diffuse) * shadows + lighting;
@@ -262,17 +262,17 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
 
     vec3 emission = color * 0.15;
     if (id == 10.0 || id == 11.0 || id == 51.0 || id == 89.0) {
-        emission *= sqrt(dot(color.rgb, color.rgb)) * 0.25;
+        emission *= sqrt(dot(color.rgb, color.rgb)) * 0.065;
     } else if (id == 50.0) {
         emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 0.0005) * 0.05;
     } else if (id == 62.0 || id == 94.0 || id == 149.0) {
-         emission *= max(color.r * 100.6 - 0.6, 0.0) * abs(dot(color.rgb, vec3(1.0 / 3.0)) - color.r);
+         emission *= max(color.r * 1.6 - 0.6, 0.0) * abs(dot(color.rgb, vec3(1.0 / 3.0)) - color.r);
     } else if (id == 76.0 || id == 213.0) {
          emission *= max(color.r * 1.6 - 0.6, 0.0) * 0.05;
     } else if (id == 169.0) {
         emission *= pow(max(dot(color.rgb, color.rgb) * 1.3 - 0.3, 0.0), 2.0) * 0.05;
     } else if (id == 124.0) {
-        emission *= sqrt(max(dot(color.rgb, color.rgb) * 1.01 - 0.01, 0.0)) * 0.05;
+        emission *= sqrt(max(dot(color.rgb, color.rgb) * 1.01 - 0.01, 0.0)) * 0.025;
     } else {
         emission *= 0.0;
     }

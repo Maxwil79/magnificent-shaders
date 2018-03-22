@@ -1,7 +1,11 @@
 #version 420
 
 //#define VolumetricFog //Enable this for VL. Highly experimental.
+//#define VolumetricFogReflections //Enable this for VL Reflections. Takes a decent amount of FPS away.
     #define AccumulationStrength 1.0 //[1.0 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.09 0.08 0.07 0.06 0.05 0.04 0.03 0.02 0.01 0.009 0.008 0.007 0.006 0.005 0.004 0.003 0.002 0.001 0.0009 0.0008 0.0007 0.0006 0.0005 0.0004 0.0003 0.0002 0.0001] Controls the strength of the temporal accumulation. A lower number means more accumulation. Off by default. Kinda looks like a renderer.
+
+#ifdef VolumetricFogReflections
+#endif
 
 #define Reflections
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
@@ -181,7 +185,6 @@ vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
     for(int i = -3; i <= 3; i++){
         for(int j = -3; j <= 3; j++){
             vec2 sampleOffset = vec2(i * (dither * fTime), j * (dither * fTime)) / vec2(viewWidth, viewHeight);
-
             result += texture(colortex0, coord + sampleOffset * 0.025);
         }
     }
@@ -190,14 +193,16 @@ vec4 temporal_antialiasing(in vec4 result, in vec2 coord) {
 }
 
 float noonLight = 1e0;
-float horizonLight = 1e3;
+float horizonLight = 8e2;
 float nightLight = 2e2;
 
 float vlIntensity = (noonLight * timeVector.x + noonLight * nightLight * timeVector.y + horizonLight * timeVector.z);
 
 #include "lib/water/refraction.glsl"
 
+#ifdef VolumetricFog
 #include "lib/light/volumetrics.glsl"
+#endif
 
 #include "lib/water/reflection.glsl"
 
@@ -235,9 +240,9 @@ void main() {
 	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
 
     #if RefractionMode == 1
-    if(id == 8.0 || id == 9.0) color = vec4(refractionEffect(view, waterDepth, lightmap, depth, waterNormal), 1.0);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color = vec4(refractionEffect(view, waterDepth, lightmap, depth, waterNormal), 1.0);
     #elif RefractionMode == 0
-    if(id == 8.0 || id == 9.0) color = vec4(raytraceRefractionEffect(view, waterDepth, depth), 1.0);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color = vec4(raytraceRefractionEffect(view, waterDepth, depth), 1.0);
     //#elif RefractionMode == 3
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);

@@ -67,7 +67,7 @@ vec3 parallax(in vec3 world, in vec3 view) {
 }
 
 vec3 waterNormal(in vec3 world, in vec3 view) {
-	const float sampleDist = 0.0025;
+	const float sampleDist = 0.0065;
 	#ifdef WavePOM
 	vec3 newWorld = parallax(world, normalize(view.xyz));
 	#else
