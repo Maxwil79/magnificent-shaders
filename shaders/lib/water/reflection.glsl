@@ -47,7 +47,7 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2, 8) * fresnelR;
     }
     vec3 moon = (get_atmosphere_transmittance(sunVector, upVector, moonVector)) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, roughnessSquared, 4e1))) * shadows;
-    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 0.095*0.095, 4e1))) * shadows;
+    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 1e-3, 4e1))) * shadows;
     vec3 backGround = specular + moon;
     reflection += backGround;
     

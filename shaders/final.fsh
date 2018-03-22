@@ -115,6 +115,8 @@ vec3 tonemap(vec3 color) {
     return color * inversesqrt(color * color + 1.0);
 }
 
+#include "lib/post/tonemap.glsl"
+
 void main() {
 	color = texture(colortex0, textureCoordinate);
     float depth = texture(depthtex1, textureCoordinate.st).r;
@@ -126,7 +128,7 @@ void main() {
 	#elif TonemapVersion == 1
 	color.rgb = tonemapUncharted2(color.rgb);
 	#elif TonemapVersion == 2
-	color.rgb = jodieRoboTonemap(color.rgb);
+	color.rgb = jodieReinhardTonemap(color.rgb);
 	#endif
 
 	float iamfloat = 1.0;

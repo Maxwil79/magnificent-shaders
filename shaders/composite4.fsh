@@ -120,7 +120,7 @@ vec3 diffractionSpikes2(vec3 color) {
 	return color;
 }
 
-vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(1.5 / 6.5);
+vec3 lumacoeff = vec3(2.5, 2.5, 2.5) / vec3(2.5 / 6.5);
 
 const vec3 lumacoeff_rec709  = vec3(0.2126, 0.7152, 0.0722);
 
@@ -128,7 +128,7 @@ vec3 lowlightDesaturate(vec3 color) {
     const vec3 rodResponse = vec3(0.15, 0.50, 0.35); // Should sum to 1
 
     float desaturated = dot(color, rodResponse);
-    color = mix(color, vec3(desaturated), exp2(-60000.0 * desaturated));
+    color = mix(color, vec3(desaturated), exp2(-600.0 * desaturated));
 
     return color;
 }
@@ -143,7 +143,7 @@ void main() {
     bloomResult += bloom(4.0, (textureCoordinate - vec2(0.645, 0.26)) * 16.0);
 
     float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, lumacoeff);
-    float exposure = clamp(3.0 / averageBrightness, 1.5, 7e3);
+    float exposure = clamp(3.0 / averageBrightness, 0.015, 7e1);
 	exposure = mix(texture(colortex7, vec2(0.5)).r, exposure, frameTime / (mix(2.5, 0.25, float(exposure < texture(colortex7, vec2(0.5)).r)) + frameTime));
 
     smoothExposure = exposure;

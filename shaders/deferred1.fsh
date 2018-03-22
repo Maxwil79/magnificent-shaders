@@ -169,8 +169,6 @@ void main() {
     float depth = texture(depthtex1, textureCoordinate.st).r;
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
 
-    //color.rgb = pow(color.rgb, vec3(2.2));
-
     vec4 view = vec4(vec3(textureCoordinate.st, depth) * 2.0 - 1.0, 1.0);
     view = gbufferProjectionInverse * view;
     view /= view.w;
