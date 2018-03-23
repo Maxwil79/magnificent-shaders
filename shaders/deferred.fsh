@@ -141,12 +141,25 @@ float lerp(float v0, float v1, float t) {
 
 #define getLandMask(x) (x < 1.0)
 
+vec3 SRGBToLinear(in vec3 color)
+{
+    vec3 x = color / 12.92f;
+    vec3 y = pow(max((color + 0.055f) / 1.055f, 0.0f), vec3(2.4f));
+
+    vec3 clr = color;
+    clr.r = color.r <= 0.04045f ? x.r : y.r;
+    clr.g = color.g <= 0.04045f ? x.g : y.g;
+    clr.b = color.b <= 0.04045f ? x.b : y.b;
+
+    return clr;
+}
+
 void main() {
     color = texture(colortex0, textureCoordinate.st);
     float depth = texture(depthtex1, textureCoordinate.st).r;
     float id = texture(colortex4, textureCoordinate.st).b * 65535.0;
 
-    color.rgb = pow(color.rgb, vec3(2.2));
+    color.rgb = SRGBToLinear(color.rgb);
 
     vec4 view = vec4(vec3(textureCoordinate.st, depth) * 2.0 - 1.0, 1.0);
     view = gbufferProjectionInverse * view;

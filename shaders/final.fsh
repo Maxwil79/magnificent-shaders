@@ -1,6 +1,6 @@
 #version 420
 
-#define TonemapVersion 0 //[0 1 2] 0 = ACES tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
+#define TonemapVersion 1 //[0 1 2] 0 = ACES tonemap. 1 = Uncharted 2 tonemap. 2 = Jodie's Robo Tonemap.
 
 layout (location = 0) out vec4 color;
 
@@ -29,8 +29,8 @@ vec3 tonemapUncharted2(
 	const float A = 0.15; // Default: 0.15
 	const float B = 0.50; // Default: 0.50
 	const float C = 0.10; // Default: 0.10
-	const float D = 0.20; // Default: 0.20
-	const float E = 0.01; // Default: 0.02
+	const float D = 0.40; // Default: 0.20
+	const float E = 0.02; // Default: 0.02
 	const float F = 0.30; // Default: 0.30
 	const float W = 11.2; // Default: 11.2
 	const float exposureBias = 2.0; // Default: 2.0
@@ -51,7 +51,7 @@ vec3 ACESFilm(vec3 x)
     float b = 0.1f;
     float c = 3.43f;
     float d = 0.59f;
-    float e = 0.14f;
+    float e = 0.21f;
     return saturate((x*(a*x+b))/(x*(c*x+d)+e));
 }
 
@@ -117,6 +117,19 @@ vec3 tonemap(vec3 color) {
 
 #include "lib/post/tonemap.glsl"
 
+vec3 LinearTosRGB(in vec3 color)
+{
+    vec3 x = color * 12.92f;
+    vec3 y = 1.055f * pow(saturate(color), vec3(1.0f / 2.4f)) - 0.055f;
+
+    vec3 clr = color;
+    clr.r = color.r < 0.0031308f ? x.r : y.r;
+    clr.g = color.g < 0.0031308f ? x.g : y.g;
+    clr.b = color.b < 0.0031308f ? x.b : y.b;
+
+    return clr;
+}
+
 void main() {
 	color = texture(colortex0, textureCoordinate);
     float depth = texture(depthtex1, textureCoordinate.st).r;
@@ -135,7 +148,7 @@ void main() {
 
     //color.rgb = adjustSaturation(color.rgb, iamfloat);
 
-    color.rgb = linearToSRGB(color.rgb);
+    color.rgb = LinearTosRGB(color.rgb);
 
 	ditherScreen(color.rgb);
 }
