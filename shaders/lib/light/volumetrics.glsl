@@ -56,7 +56,7 @@ vec3 VL(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float in
 
     vec3 increment = (end - start) / steps;
     increment /= distance(start, end) / clamp(distance(start, end), 0.0, VolumeDistance);
-    start -= increment * dither;
+    start -= increment * dither2;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse;
 

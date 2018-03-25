@@ -11,7 +11,7 @@
     #define SsrSamples 1 //[1 2 4 8 16 32 64 128 256 512]
     #define RoughnessValue 0.095 //[0.01 0.015 0.02 0.025 0.03 0.035 0.04 0.045 0.05 0.055 0.06 0.065 0.07 0.075 0.08 0.085 0.09 0.095 0.1 0.15 0.2 0.25 0.3]
 
-#define RefractionMode 1 //[0 1] 0 = no refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet.
+#define RefractionMode 0 //[0 1] 0 = no refractions. 1 = waterfog, non-raytraced refractions. 2 = unrealistic refraction, has the least amount of artifacts. Mode 2 is not added yet.
 
 #define Torch_Temperature 3450 //[1000 1100 1150 1200 1250 1300 1350 1400 1450 1500 1550 1600 1650 1700 1750 1800 1850 1900 1950 2000 2100 2150 2200 2250 2300 2350 2400 2450 2500 2550 2600 2650 2700 2750 2800 2850 2900 2950 3000 3100 3150 3200 3250 3300 3350 3400 3450 3500 3550 3600 3650 3700 3750 3800 3850 3900 3950] A lower value gives a more red result, and can make Endermen eyes look strange.
 #define Attenuation 2.5 //[1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5] A higher value will make the torch lightmaps smaller.
@@ -238,10 +238,13 @@ void main() {
 	backPosition[0] = vec3(textureCoordinate, depth);
 	backPosition[1] = screenSpaceToViewSpace(backPosition[0], gbufferProjectionInverse);
 
+    vec4 end = gbufferProjectionInverse * vec4(textureCoordinate.xy * 2.0 - 1.0, texture2D(depthtex1, textureCoordinate.xy).r * 2.0 - 1.0, 1.0);
+    end /= end.w;
+
     #if RefractionMode == 1
     if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color = vec4(refractionEffect(view, waterDepth, lightmap, depth, waterNormal), 1.0);
     #elif RefractionMode == 0
-    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color = vec4(raytraceRefractionEffect(view, waterDepth, depth), 1.0);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color = vec4(waterFogVolumetric(color.rgb, view.xyz, end.xyz, lightmap, world.xyz), 1.0);
     //#elif RefractionMode == 3
     #endif
     if(isEyeInWater == 1) color = vec4(waterFogVolumetric(color.rgb, vec3(0.0), view.xyz, lightmap, world.xyz), 1.0);

@@ -30,14 +30,14 @@ float getWaves(in vec3 position)
 	vec2 p2 = (position.xz + position.y) + waveTime;
 
 	// Scale
-	p /= 45.0 + WaveLength;
+	p /= 65.0 + WaveLength;
 	p2 /= 9.0 + WaveLength;
 
 	const float weightArray[numWaves] = float[numWaves] (
 		1.0,
 		8.0,
 		15.0,
-		0.45
+		0.6
 	);
 
 	vec2 pArray[numWaves] = vec2[numWaves] (

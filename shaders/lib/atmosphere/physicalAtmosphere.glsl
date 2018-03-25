@@ -69,7 +69,7 @@ vec3 get_atmosphere(vec3 background, vec3 viewVector, vec3 sunVector, vec3 moonV
 }
 
 vec3 get_atmosphere_ambient(vec3 background, vec3 viewVector, vec3 sunVector, in vec3 moonVector, const int skySteps){
-	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor, skySteps) * vec3(0.4, 0.6, 0.95) * 1.2;
+	vec3 atmos = sky_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, sunColor * 5e-2, moonColor, skySteps) * vec3(0.4, 0.6, 0.95) * 1.5;
 
 	return atmos;
 }

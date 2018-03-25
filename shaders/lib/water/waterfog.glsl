@@ -81,7 +81,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
-    vec3 skyLightColor = vec3(0.0);
+    vec3 skyLightColor = get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector2, moonVector2, 16) * 3.0 * lightmap.y;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= steps;
@@ -98,7 +98,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 increment = (end - start) / steps;
     //increment /= distance(start, end) / clamp(distance(start, end), 0.0, 5.0);
-    start -= increment * dither;
+    start -= increment * dither2;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse; //Thank you to BuilderB0y for showin me this. 
 
