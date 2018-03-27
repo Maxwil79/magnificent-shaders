@@ -55,7 +55,22 @@ vec3 refractionEffect(vec4 view, float waterDepth, vec2 lightmap, float depth, i
     float refractionTexcoord = clamp01(5.0 - abs(textureCoordinate.y * 2.0 - 5.0));
     if(isEyeInWater == 0) refractAmount *= refractionTexcoord;
 
-    vec3 refractionDirection = refract(normalize(view.xyz), normal, AirIOR/WaterIOR);
+    vec4 world = gbufferModelViewInverse * view;
+    world /= world.w;
+
+    vec3 refractionDirection = refract(normalize(view.xyz), normal, isEyeInWater == 1 ? WaterIOR/AirIOR : AirIOR/WaterIOR);
+    if (refractionDirection == vec3(0.0)) {
+        // Total internal reflection
+        vec3 direction = reflect(normalize(viewPosition.xyz), normal);
+        vec2 lightmap = texture2D(colortex2, textureCoordinate).rg;
+        vec4 hitPosition;
+        if (!raytraceIntersection(vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r), direction, hitPosition.xyz, 16.0, 4.0)) {
+            vec3 hitViewPositon = screenSpaceToViewSpace(hitPosition.xyz, gbufferProjectionInverse);
+           // VL(textureLod(colortex0, hitPosition.xy, 0).rgb, viewPosition.xyz, hitViewPositon, lightmap, world.xyz, vlIntensity);
+            return waterFogVolumetric(texture(colortex0, hitPosition.xy).rgb, viewPosition.xyz, hitViewPositon.xyz, lightmap, world.xyz);
+        } 
+        return waterFogVolumetric(texture(colortex0, hitPosition.xy).rgb, viewPosition.xyz, screenSpaceToViewSpace(hitPosition.xyz, gbufferProjectionInverse), lightmap, world.xyz);
+    }
 
     view.xyz += refractionDirection * refractAmount;
 
@@ -64,8 +79,8 @@ vec3 refractionEffect(vec4 view, float waterDepth, vec2 lightmap, float depth, i
 
     if(isEyeInWater == 1) view.xy = view.xy * 0.5 + 0.5;
 
-    vec4 world = gbufferModelViewInverse * view;
-    world /= world.w;
+    //vec4 world = gbufferModelViewInverse * view;
+    //world /= world.w;
 
     vec4 end = gbufferProjectionInverse * vec4(view.xy, texture2D(depthtex1, view.xy * 0.5 + 0.5).r * 2.0 - 1.0, 1.0);
     end /= end.w;

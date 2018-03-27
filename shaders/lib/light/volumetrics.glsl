@@ -1,7 +1,7 @@
 float groundFog(vec3 worldPos) {
 	worldPos.y -= vl_Height_Rayleigh;
 	float density = 1.0;
-	density *= exp(-worldPos.y / 5.0);
+	density *= exp(-worldPos.y / 3.0);
     density = clamp(density, 0.0005, 6.2);
 	return density;
 }

@@ -36,7 +36,7 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     vec3 direction = reflect(viewDirection.xyz, normal);
     vec3 direction1 = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, normal);
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 8.0, 4.0)) {
         vec3 hitViewPositon = screenSpaceToViewSpace(hitPosition.xyz, gbufferProjectionInverse);
         #if defined VolumetricFogReflections && defined VolumetricFog 
         reflection += VL(textureLod(colortex0, hitPosition.xy, 0).rgb, viewPosition.xyz, hitViewPositon, lightmap, world.xyz, vlIntensity) * fresnelR;

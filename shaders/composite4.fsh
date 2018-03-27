@@ -128,7 +128,7 @@ vec3 lowlightDesaturate(vec3 color) {
     const vec3 rodResponse = vec3(0.15, 0.50, 0.35); // Should sum to 1
 
     float desaturated = dot(color, rodResponse);
-    color = mix(color, vec3(desaturated), exp2(-600.0 * desaturated));
+    color = mix(color, vec3(desaturated), exp2(-700.0 * desaturated));
 
     return color;
 }

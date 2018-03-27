@@ -19,7 +19,7 @@ float bayer2(vec2 a){
 float ssao (vec3 position, vec3 normal) {
     float dither = bayer64(gl_FragCoord.st);
     float result = 0.0;
-    for(float i = -0.0; i <= 15.0; i++){
+    for(float i = -0.0; i <= 16.0; i++){
         vec4 noise = hash42(vec2(i, dither));
         vec3 offset = normalize(noise.xyz * 2.0 - 1.0) * noise.w;
         if (dot(offset, normal) < 0.0) offset = -offset;
@@ -29,6 +29,6 @@ float ssao (vec3 position, vec3 normal) {
 
         if (depth > samplePosition.z) result += 1.1;
     }
-    result /= 15.0;
+    result /= 16.0;
     return result;
 }

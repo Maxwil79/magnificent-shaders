@@ -15,7 +15,7 @@ const float sky_mieg = mieG;
 
 // TODO: Calculate these coefficients myself so I can make sure they're consistent with what they should be. Until I do that I'll just use ones I've found that look good.
 const vec3 sky_coefficientRayleigh = vec3(5.8000e-6, 1.3500e-5, 3.3100e-5);
-const vec3 sky_coefficientOzone    = vec3(2.0550e-6, 4.9788e-6, 0.2136e-6);
+const vec3 sky_coefficientOzone    = vec3(4.0550e-6, 4.9788e-6, 0.2136e-6);
 const vec3 sky_coefficientMie      = vec3(8.6000e-6, 8.6000e-6, 8.6000e-6); // Should be >= 2e-6, depends heavily on conditions. Current value just one that looks good.
 
 //--// Calculated from the above
@@ -47,5 +47,5 @@ const float atmosphereRadiusSquared = atmosphereRadius * atmosphereRadius;
 #define skyQuality_I 12 //[4 8 12 16 32 64 128] Controls the quality of the atmosphere. Higher means a slower, but more realistic lookin' sky. Change the J steps after you change this. Only used by the atmosphere transmittance function right now.
 #define skyQuality_J 3 //[3 6 8 12 24 48 96] Controls the quality of the atmosphere. Higher means a slower, but more realistic lookin' sky. Only change if you have changed the I steps.
 
-const float vl_Height_Rayleigh = 8.5e1;
+const float vl_Height_Rayleigh = 6.4e1;
 const float vl_Height_Mie = 1.0e1;

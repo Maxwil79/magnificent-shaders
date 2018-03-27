@@ -48,14 +48,14 @@ float calculateWaveHeight(vec2 coord) {
     float b = sin(f);
 
     for (int i = 0; i < octaves; i++) {
-        vec2 noise     = noiseSmooth(coord.xy * 0.15 + i / octaves).xy;
+        vec2 noise     = vec2(waterNoise(coord.xy * 0.15 + i / octaves));
         waves         += -gernsterWaves(coord + 0.3 * (noise * 2.0 - 1.0) * sqrt(waveLength), movement, waveSteepness, waveAmplitude, waveLength, waveDirection);
-        waveSteepness *= 0.8;
-        waveAmplitude *= 0.6;
-        waveLength    *= 0.7;
+        waveSteepness *= 1.1;
+        waveAmplitude *= 0.55;
+        waveLength    *= 0.75;
         waveDirection  = rotateNoMat(waveDirection, a, b);
         //coord  = rotateNoMat(coord + waveDirection, a, b);
-        a      += pi - 3.23333;
+        //a      += pi - 3.23333;
     }
 
     return waves;

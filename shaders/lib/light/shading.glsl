@@ -241,7 +241,7 @@ vec3 getShading(in vec3 color, in vec3 world, in float id, out vec3 shadowsCast,
     float LdotH = dot(lightVector,H);
 
 	#ifdef WiP_SSAO
-	float ao = (pow(ssao, 4.0) / 3.0);
+	float ao = (pow(ssao, 3.0) / 2.0);
 	#else
 	float ao = 1.0;
 	#endif

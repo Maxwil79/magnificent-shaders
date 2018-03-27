@@ -81,7 +81,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
-    vec3 skyLightColor = get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector2, moonVector2, 16) * 3.0 * lightmap.y;
+    vec3 skyLightColor = get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector2, moonVector2, 6) * 5.0 * lightmap.y;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= steps;
@@ -109,11 +109,7 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
     float lengthOfIncrement = length(increment);
     vec3 sunlightConribution = lightColor;
     vec3 skylightContribution = skyLightColor;
-    #ifndef AlternateWaterdepth
     float depth = stepSize;
-    #else
-    float depth;
-    #endif
     for (int i = 0; i < steps; i++) {
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
@@ -122,20 +118,6 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         float shadowOpaque = float(tex0 > shadowPos.p - 0.000003);
         float shadowTransparent = float(tex1 > shadowPos.p - 0.000003);
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
-
-        #ifdef AlternateWaterdepth
-        float shadowDepthSample2 = tex0 - shadowPos.z + 0.0003;
-        depth += (shadowDepthSample2 * shadowProjectionInverse[2].z) / steps;
-        depth = clamp(depth, 0.0, 4e12);
-        #endif
-
-        #ifdef WaterShadowEnable
-        float shadowDepthSample = tex0 - shadowPos.z;
-        vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
-        float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
-
-        if(waterShadowCast == 1.0) shadow *= waterShadow;
-        #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
         transmittance *= exp(-attenCoeff * depth);
