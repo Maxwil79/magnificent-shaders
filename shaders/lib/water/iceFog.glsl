@@ -1,7 +1,7 @@
 //This will eventually be merged with the water fog function.
 
 vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
-    const vec3 attenCoeff = acoeff2 + scoeff2;
+    const vec3 attenCoeff = acoeff + scoeff;
     float density = 1.0;
 
 
@@ -13,7 +13,7 @@ vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3
     vec3 skyLightColor = vec3(0.0);
 
 	vec3 rayVec  = end - start;
-	     rayVec /= FogSteps;
+	     rayVec /= 8;
 	float stepSize = length(rayVec);
 
 	float VoL   = dot(normalize(end - start), lightVector);
@@ -25,8 +25,8 @@ vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3
     vec3 transmittance = vec3(1.0);
 	vec3 scattered  = vec3(0.0) * transmittance;
 
-    vec3 increment = (end - start) / FogSteps;
-    start -= increment * dither;
+    vec3 increment = (end - start) / 8;
+    start -= increment * hashAnimated;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse; //Thank you to BuilderB0y for showin me this. 
 
@@ -37,7 +37,7 @@ vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3
     float lengthOfIncrement = length(increment);
     vec3 sunlightConribution = lightColor;
     vec3 skylightContribution = skyLightColor;
-    for (int i = 0; i < FogSteps; i++) {
+    for (int i = 0; i < 8; i++) {
         curPos.xyz += increment;
         vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
         float tex0 = texture(shadowtex0, shadowPos.st).r;
@@ -46,13 +46,11 @@ vec3 waterFogVolumetricIce(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3
         float shadowTransparent = float(tex1 > shadowPos.p - 0.000003);
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
 
-        #ifdef WaterShadowEnable
         float shadowDepthSample = tex0 - shadowPos.z;
         vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
         float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
 
         if(waterShadowCast == 1.0) shadow *= waterShadow;
-        #endif
 
         scattered += (shadow + skylightContribution) * transmittance;
         transmittance *= exp(-(attenCoeff * density) * (stepSize));

@@ -19,10 +19,10 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     vec3 viewDirection = normalize(viewPosition.xyz);
     vec3 viewVec3 = vec3(textureCoordinate, texture(depthtex0, textureCoordinate).r);
     int samples = SsrSamples;
-    vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
     float skyLight = pow(decode2x16(texture(colortex4, textureCoordinate.st).r).y, 7.0);
     vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
     vec3 waterNormal = unpackNormal(texture(colortex1, textureCoordinate.st).rg);
+    vec3 shadows = decode3x16(texture(colortex0, textureCoordinate.st).a);
 
     vec3 normal;
 
@@ -34,9 +34,8 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     float fresnelR = better_fresnel(view, normal);
     
     vec3 direction = reflect(viewDirection.xyz, normal);
-    vec3 direction1 = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, normal);
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 8.0, 4.0)) {
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 4.0, 4.0)) {
         vec3 hitViewPositon = screenSpaceToViewSpace(hitPosition.xyz, gbufferProjectionInverse);
         #if defined VolumetricFogReflections && defined VolumetricFog 
         reflection += VL(textureLod(colortex0, hitPosition.xy, 0).rgb, viewPosition.xyz, hitViewPositon, lightmap, world.xyz, vlIntensity) * fresnelR;
@@ -44,12 +43,12 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
         reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnelR;
         #endif
     } else {
-    reflection += skyLight * get_atmosphere(vec3(0.0), direction1, sunVector2, moonVector2, 4) * fresnelR;
+    reflection += skyLight * get_atmosphere(vec3(0.0), mat3(gbufferModelViewInverse) * direction, sunVector2, moonVector2, 2) * fresnelR;
     }
-    vec3 moon = (get_atmosphere_transmittance(sunVector, upVector, moonVector)) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), moonVector, 3e-2, 4e1))) * shadows;
-    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 2e-3, 4e1))) * shadows;
+    vec3 moon = calculateMoon(moonVector, direction) * shadows;
+    vec3 specular = (get_atmosphere_transmittance(sunVector, upVector, moonVector) * sunColor) * vec3(clamp01(GGX(waterNormal, normalize(-view.xyz), sunVector, 1.5e-2, 0.002))) * shadows;
     vec3 backGround = specular + moon;
     reflection += backGround;
     
-    return reflection / samples;
+    return reflection;
 }
