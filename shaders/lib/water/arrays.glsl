@@ -20,10 +20,10 @@
 	);
 
 	vec2 translationArray[numWaves] = vec2[numWaves] (
-		vec2(pArray[0].y * 0.0, pArray[0].x * 0.1),
-		vec2(pArray[1].y * 0.0, pArray[1].x * 0.8),
-		vec2(pArray[2].y * 1.5, pArray[2].x * 0.0),
-		vec2(pArray[3].y * 1.5, pArray[3].x * 0.0)
+		vec2(pArray[0].y * 0.5, pArray[0].x * 2.2),
+		vec2(pArray[1].y * 0.9, pArray[1].x * 1.1),
+		vec2(pArray[2].y * 1.5, pArray[2].x * 1.5),
+		vec2(pArray[3].y * 1.5, pArray[3].x * 1.7)
 	);
 
 	const float weightArray2[numWaves] = float[numWaves] (
@@ -41,10 +41,10 @@
 	);
 
 	const vec2 scaleArray2[numWaves] = vec2[numWaves] (
-		vec2(2.0),
-		vec2(1.7),
-		vec2(1.0),
-		vec2(15.0)
+		vec2(2.0, 1.4),
+		vec2(1.7, 0.7),
+		vec2(1.0, 1.2),
+		vec2(15.0, 30.8)
 	);
 
 	vec2 translationArray2[numWaves] = vec2[numWaves] (

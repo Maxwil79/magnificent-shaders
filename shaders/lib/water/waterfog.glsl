@@ -1,24 +1,44 @@
-float bayer2(vec2 a){
-    a = floor(a);
-    return fract( dot(a, vec2(.5, a.y * .75)) );
-}
-#define bayer4(a)   (bayer2( .5*(a))*.25+bayer2(a))
-#define bayer8(a)   (bayer4( .5*(a))*.25+bayer2(a))
-#define bayer16(a)  (bayer8( .5*(a))*.25+bayer2(a))
-#define bayer32(a)  (bayer16(.5*(a))*.25+bayer2(a))
-#define bayer64(a)  (bayer32(.5*(a))*.25+bayer2(a))
-#define bayer128(a) (bayer64(.5*(a))*.25+bayer2(a))
+vec3 waterFog(vec3 color, float dist) {
+    vec3 acoeff = vec3(.4510, .0567, .0476 ) * 3.0;
+    vec3 scoeff = vec3(6.9, 7.5, 7.1) * 0.0005;
 
-#define dither2(p)   (bayer2(  p)-.375      )
-#define dither4(p)   (bayer4(  p)-.46875    )
-#define dither8(p)   (bayer8(  p)-.4921875  )
-#define dither16(p)  (bayer16( p)-.498046875)
-#define dither32(p)  (bayer32( p)-.499511719)
-#define dither64(p)  (bayer64( p)-.49987793 )
-#define dither128(p) (bayer128(p)-.499969482)
+    float shadows = texture(colortex0, textureCoordinate.st).a;
+    if(isEyeInWater == 1) shadows = 1.0;
+
+    vec3 lightColor = vec3(0.0);
+    lightColor = vec3(get_atmosphere(vec3(0.0), vec3(0.0), sunVector, moonVector, 16)) / pi;
+    vec2 lightmap = decode2x16(texture(colortex4, textureCoordinate.st).r);
+
+    vec3 depthColors = vec3(1.0);
+
+    vec3 attenCoeff = scoeff + acoeff;
+
+    vec3 waterColors = attenCoeff+1.1;
+
+    vec3 transmittance = exp(-attenCoeff * dist);
+	vec3 scattered  = scoeff * (1.0 - transmittance) / acoeff;
+
+    if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
+    vec3 lighting = pow(lightmap.y, 4.0) * lightColor;
+
+    return color * transmittance + lighting * scattered;
+}
 
 // Volumetric Water Fog
 float pow2(in float n)  { return n * n; }
+
+vec3 waterFogAmbient(float dist, vec3 lightColor, vec3 attenCoeff) {
+    //vec3 acoeff = vec3(1.35, 0.05, 0.03) * 40.5;
+    //vec3 scoeff = vec3(0.0000, 0.01, 0.01) * 4.5;
+
+    //vec3 attenCoeff = scoeff + acoeff;
+
+    vec2 lightmap = texture(colortex2, textureCoordinate.st).rg;
+    vec3 transmittance = exp(-attenCoeff * clamp(dist, 0.0, 4e12));
+    if (isEyeInWater == 1) lightmap = vec2(eyeBrightnessSmooth) / 240.0;
+
+    return ((transmittance * 45e-2) * pow(lightmap.y, 5.0)) * lightColor;
+}
 
 float water_fournierForandPhase(float theta, float mu, float n) {
     float v     = (3.0 - mu) * 0.5;
@@ -34,9 +54,12 @@ float water_fournierForandPhase(float theta, float mu, float n) {
     return result;
 }
 
+//#define AlternateWaterdepth //Uses an alternate, slightly weird, method for the water depth.
 #define WaterQuality 1 //[0 1 2 3 4 5 6]
 
-vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float dither) {  
+vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world) {  
+    const vec3 attenCoeff = acoeff + scoeff;
+
     #if WaterQuality == 0
     int steps = 1;
     #elif WaterQuality == 1
@@ -58,13 +81,11 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 
     vec3 lightColor = vec3(0.0);
     lightColor = get_atmosphere_transmittance(sunVector, upVector, moonVector);
-    vec3 skyLightColor = get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector2, moonVector2, 16) * 4.0 * lightmap.y;
+    vec3 skyLightColor = get_atmosphere_ambient(vec3(0.0), vec3(0.0), sunVector2, moonVector2, 6) * 5.0 * lightmap.y;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= steps;
 	float stepSize = length(rayVec);
-
-    const vec3 attenCoeff = acoeff + scoeff;
 
 	float VoL   = dot(normalize(end - start), lightVector);
 	float rayleigh = rayleighPhase(VoL);
@@ -76,7 +97,8 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
 	vec3 scattered  = vec3(0.0) * transmittance;
 
     vec3 increment = (end - start) / steps;
-    start -= increment * dither;
+    //increment /= distance(start, end) / clamp(distance(start, end), 0.0, 5.0);
+    start -= increment * dither2;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse; //Thank you to BuilderB0y for showin me this. 
 
@@ -97,18 +119,10 @@ vec3 waterFogVolumetric(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 wo
         float shadowTransparent = float(tex1 > shadowPos.p - 0.000003);
         vec3 shadow = mix(vec3(shadowOpaque), vec3(1.0), float(shadowTransparent > shadowOpaque)) * sunlightConribution;
 
-        //float shadowDepthSample = texture(shadowtex0, shadowPos.st).r - shadowPos.z;
-        //vec3 waterShadow = waterFogShadow((shadowDepthSample * 2.0) * shadowProjectionInverse[2].z);
-        //float waterShadowCast = float(texture(shadowcolor1, shadowPos.st).r > shadowPos.z - 0.0009);
-
-        //if(waterShadowCast == 1.0) shadow *= waterShadow;
-
         scattered += (shadow + skylightContribution) * transmittance;
-        transmittance *= exp(-(attenCoeff * 1.5) * depth);
+        transmittance *= exp(-attenCoeff * depth);
     } scattered *= scoeff;
-    scattered *= (1.0 - exp(-(attenCoeff * 1.5) * depth)) / ((attenCoeff * 1.5));
+    scattered *= (1.0 - exp(-attenCoeff *depth)) / (attenCoeff);
 
     return color * transmittance + scattered;
 }
-
-#include "iceFog.glsl"

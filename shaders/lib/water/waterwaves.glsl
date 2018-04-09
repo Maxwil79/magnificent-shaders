@@ -1,7 +1,10 @@
-#define Octaves 4 //[2 4 6 8 16 32 64 128] Use this to adjust the amount of octaves used by the gerstner waves. Higher means less FPS but more quality.
+#define Octaves 2 //[2 4 6 8 16 32 64 128] Use this to adjust the amount of octaves used by the gerstner waves. Higher means less FPS but more quality.
 
-#define WaveSteepness 0.85
-#define WaveAmplitude 0.025
+#define WaveSteepness 1.95
+#define WaveAmplitude 0.65
+#define WaveLength 5.0 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 15.0 20.0 25.0 30.0 35.0] Changes the length/scale of the waves.
+#define WaveDirectionX 0.5 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0] 
+#define WaveDirectionY 0.75 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
 float waterNoise(vec2 coord) {
 		vec2 floored = floor(coord);
@@ -11,53 +14,45 @@ float waterNoise(vec2 coord) {
 		return dot(samples, weights.yxxy * weights.zzww);
 }
 
-vec2 rotateNoMat(vec2 coord, float a, float b) {
-    float ns = b * coord.y + a * coord.x;
-    float nc = a * coord.y - b * coord.x;
-    return vec2(ns, nc);
-}
-
-float rand(vec2 n) { 
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
-}
-
-float noise2(vec2 n) {
-	const vec2 d = vec2(0.0, 1.0);
-  vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
-}
-
-float fbm(vec2 x) {
-	float v = 0.0;
-	float a = 0.5;
-	vec2 shift = vec2(100);
-	// Rotate to reduce axial bias
-    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
-	for (int i = 0; i < 5; ++i) {
-		v += a * noise2(x);
-		x = rot * x * 2.0 + shift;
-		a *= 0.5;
-	}
-	return v;
-}
+#include "gerstnerWaves.glsl"
 
 //#define DetailWaves //Enable this for small scale detail waves at the cost of performance.
 
 #define Speed2 0.08 //[0.001 0.002 0.004 0.005 0.006 0.007 0.008 0.009 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1] Changes the speed of the waves.
 
-#include "gerstnerWaves.glsl"
-
 float getWaves(in vec3 position)
 {
-	float waves   = 0.0;
+	const uint numWaves = 4;
+	float waveTime = frameTimeCounter * Speed2;
 
-	waves += calculateWaveHeight((position.xz + position.y), 162.5, 0.5, 6.0, 0.025, 0.55, 2);
-	waves += calculateWaveHeight((position.xz + position.y), 0.8, 0.15, 0.4, 0.0005, 0.8, 4);
-	waves += calculateWaveHeight((position.xz + position.y), 0.2, 0.74, 9.0, 0.03, 0.7, 2);
-	waves += calculateWaveHeight((position.xz + position.y), 5.5, 0.5, 4.0, 0.0085, 0.75, 3);
-	#ifdef DetailWaves
-	waves += fbm(((position.xz + position.y))) * 0.015;
-	#endif
+	// Base translation
+	vec2 p = -(position.xz + position.y) + waveTime;
+	vec2 p2 = (position.xz + position.y) + waveTime;
+
+	// Scale
+	p /= 55.0 + WaveLength;
+	p2 /= 12.0 + WaveLength;
+
+	#include "arrays.glsl"
+
+	float waves   = 0.0;
+	float weights = 0.0;
+
+    const float f = tau / (2.618);
+    float a = cos(f);
+    float b = sin(f);
+
+	for(int id = 0; id < numWaves; id++) {
+		float wave = waterNoise((rotateNoMat((pArray[id] * scaleArray[id]) + translationArray[id], a, b)) * noiseTextureResolution) * 0.35;
+		wave += calculateWaveHeight(((pArray3[id] * scaleArray3[id]) + translationArray3[id]) * noiseTextureResolution);
+		waves   += wave * weightArray[id];
+		weights += weightArray[id];
+	}
+
+	waves /= weights;
+
+	waves *= 0.1;
+	waves -= 0.1;
 
 	return waves;
 }
