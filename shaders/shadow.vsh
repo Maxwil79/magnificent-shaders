@@ -1,64 +1,50 @@
-#version 420 compatibility
+#version 120
 
-#define PlayerShadow //Disable this ti disable the player shadow.
+#define Entity_Shadows
 
-layout (location = 0) in vec4 inPosition;
-layout (location = 8) in vec4 inTexCoord;
-layout (location = 10) in vec4 mc_Entity;
+varying vec2 uvcoord;
+varying float isWater;
+
+uniform int entityId;
+
+attribute vec4 mc_Entity;
 
 uniform mat4 shadowProjection, shadowModelView;
 uniform mat4 shadowProjectionInverse, shadowModelViewInverse;
 
-uniform int entityId;
+#include "lib/distortion.glsl"
 
-out vec2 uvcoord;
-
-out float id;
-
-out float isWater;
-
-uniform vec3 cameraPosition;
-uniform float frameTimeCounter;
-const float pi  = 3.14159265358979;
-
-#include "lib/light/distortion.glsl"
+mat4 newShadowModelView = mat4(
+    1, 0, 0, shadowModelView[0].w,
+    0, 0, 1, shadowModelView[1].w,
+    0, 1, 0, shadowModelView[2].w,
+    shadowModelView[3]
+);
 
 void main() {
-	vec4 v = (gl_ModelViewMatrix * inPosition);
-	vec4 v2 = shadowModelViewInverse * v;
-	float speed = 0.25;
-	float t = frameTimeCounter * speed;
-	float waveHeight = 0.045;
-	float waveWidth = 6.5;
+    gl_Position = ftransform();
 
-	vec3 w = v2.xyz + cameraPosition;
-
-	if(mc_Entity.x == 18.0 || mc_Entity.x == 161.0) {
-                v.y += waveHeight * sin(4 * pi * (t + w.x / waveWidth  + w.z / waveWidth));
-                v.y += waveHeight * sin(2 * pi * (t + w.x / waveWidth + w.z / waveWidth));
-	}
-
-	gl_Position = shadowProjection * v;
+    gl_Position = gl_ModelViewMatrix * gl_Vertex;
+    //gl_Position = newShadowModelView * shadowModelViewInverse * gl_Position;
+    gl_Position = shadowProjection * gl_Position;
 
     gl_Position.xy /= ShadowDistortion(gl_Position.xy);
     gl_Position.z /= 6.0;
 
-    id = mc_Entity.x;
-
-    if (mc_Entity.x == 51) {
-    // Is a fire vertex
-    gl_Position = vec4(0.0);
-    }
-
-    #ifndef PlayerShadow
+    #ifndef Entity_Shadows
     if (mc_Entity.x == 0 && entityId == -1) {
     // Is a player vertex
     gl_Position = vec4(0.0);
     }
+
+    if (mc_Entity.x == 0) {
+    // Is a fire vertex
+    gl_Position = vec4(0.0);
+    }
     #endif
+
+    uvcoord = gl_MultiTexCoord0.st;
 
     isWater = 0.0;
     if(mc_Entity.x == 8.0 || mc_Entity.x == 9.0) isWater = 1.0;
-
-    uvcoord = (gl_TextureMatrix[0] * inTexCoord).xy;
 }
