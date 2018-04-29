@@ -24,14 +24,27 @@ const bool colortex7Clear = false;
 
 uniform float viewWidth, viewHeight;
 
+#define sum3(a) dot(a, vec3(1.0))
+
+vec3 lowlightDesaturate(vec3 color) {
+    const vec3 rodResponse = vec3(0.15, 0.50, 0.35); // Should sum to 1
+
+    float desaturated = dot(color, vec3(sum3(rodResponse)));
+    color = mix(color, vec3(desaturated) * vec3(0.6, 0.7, 1.20), exp2(-600.0 * desaturated));
+
+    return color;
+}
+
 void main() {
     color = texture(colortex0, texcoord);
 
-    float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, vec3(1.0 / 0.09346153846));
-    float exposure = clamp(3.0 / averageBrightness, 6.5e-5, 7e1);
+    float averageBrightness = dot(textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb, vec3(1.0 / 0.0346153846));
+    float exposure = clamp(3.0 / averageBrightness, 4.5e-4, 7e1);
 	exposure = mix(texture(colortex7, vec2(0.5)).r, exposure, frameTime / (mix(2.5, 0.25, float(exposure < texture(colortex7, vec2(0.5)).r)) + frameTime));
 
     smoothExposure = exposure;
+
+    color.rgb = lowlightDesaturate(color.rgb);
 
     color *= smoothExposure;
 }

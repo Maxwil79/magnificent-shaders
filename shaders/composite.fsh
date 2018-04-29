@@ -47,10 +47,6 @@ vec2 screenRes = vec2(viewWidth, viewHeight);
 const float pi  = 3.14159265358979;
 const float tau = pi*2;
 
-const float sunPathRotation = -40.0;
-const int shadowMapResolution = 2048;
-const float shadowDistance = 256.0;
-
 mat4 newShadowModelView = mat4(
     1, 0, 0, shadowModelView[0].w,
     0, 0, 1, shadowModelView[1].w,
@@ -70,11 +66,11 @@ vec3 upVector = gbufferModelView[1].xyz;
 #include "lib/distortion.glsl"
 
 float shadow_opaque(in vec3 pos, in float distort) {
-    return float(texture(shadowtex0, pos.st).r > pos.p - 0.000055 * distort);
+    return float(texture(shadowtex0, pos.st).r > pos.p - 0.00025 / distort);
 }
 
 float shadow_transparent(in vec3 pos, in float distort) {
-    return float(texture(shadowtex1, pos.st).r > pos.p - 0.000055 * distort);
+    return float(texture(shadowtex1, pos.st).r > pos.p - 0.00025 / distort);
 }
 
 vec3 shadow_color(in vec3 pos) {
@@ -106,7 +102,7 @@ vec3 get_shading(in vec4 color, in vec3 world) {
     vec3 shadows = vec3(0.0);
     vec3 lighting = vec3(0.0);
 
-    float NdotL = dot(normal, lightVector);
+    float NdotL = dot(normal, sunVector2);
     float diffuse = max(0.0, NdotL);
 
     shadows += shadow_map(shadowPos.xyz);
@@ -114,20 +110,12 @@ vec3 get_shading(in vec4 color, in vec3 world) {
     vec4 colorDirect = color;
     vec4 colorSky = color;
 
-    #if FastSky == 0
-    int sampleIN = 16;
-    int sampleOUT = 6;
-    #elif FastSky == 1
-    int sampleIN = 6;
-    int sampleOUT = 2;
-    #endif
+    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(16, 2));
+    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(6, 2));
 
-    useAtmosphereDirect(colorDirect, lightVector.xyz, sampleIN, sampleOUT);
-    useAtmosphereAmbient(colorSky, mat3(gbufferModelViewInverse) * upVector, sampleIN, sampleOUT);
-
-    lighting = (colorDirect.rgb * diffuse) * shadows + lighting;
-    lighting = (blackbody(2400)) * pow(lightmap.x, 3.5) + lighting;
-    lighting = pow(lightmap.y, 8.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 3.0) + lighting;
+    lighting = (diffuse * colorDirect.rgb) * shadows + lighting;
+    lighting = (blackbody(2700)) * pow(lightmap.x, 3.5) + lighting;
+    lighting = pow(lightmap.y, 6.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 2.0) + lighting;
 
     color.rgb = color.rgb * lighting;
     return color.rgb;

@@ -1,2 +1,7 @@
 value.FastSky.0=Disabled
 value.FastSky.1=Enabled
+
+value.VlMode.0=Earth
+value.VlMode.1=Alien Planet
+
+option.VL=Volumetric Lighting

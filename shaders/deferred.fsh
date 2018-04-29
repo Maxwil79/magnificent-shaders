@@ -72,26 +72,26 @@ vec3 upVector = gbufferModelView[1].xyz;
 #include "lib/distortion.glsl"
 
 float shadow_opaque(in vec3 pos, in float distort) {
-    return float(texture(shadowtex0, pos.st).r > pos.p - 0.000055 * distort);
+    return float(texture(shadowtex0, pos.st).r > pos.p - 0.00015 / distort);
 }
 
 float shadow_transparent(in vec3 pos, in float distort) {
-    return float(texture(shadowtex1, pos.st).r > pos.p - 0.000055 * distort);
+    return float(texture(shadowtex1, pos.st).r > pos.p - 0.00015 / distort);
 }
 
-vec3 shadow_color(in vec3 pos) {
-    return texture(shadowcolor0, pos.st).rgb;
+vec4 shadow_color(in vec3 pos) {
+    return texture(shadowcolor0, pos.st);
 }
 
-vec3 shadow_map(in vec3 pos) {
+vec4 shadow_map(in vec3 pos, in float id) {
     float distortionFactor = 1.0 / ShadowDistortion(pos.st);
     float shadowOpaque = shadow_opaque(pos, distortionFactor*distortionFactor);
     float shadowTransparent = shadow_transparent(pos, distortionFactor*distortionFactor);
-    vec3 shadowColor = shadow_color(pos);
-    return mix(vec3(shadowOpaque), shadowColor, float(shadowTransparent > shadowOpaque));
+    vec4 shadowColor = shadow_color(pos);
+    return mix(vec4(shadowOpaque), shadowColor, float(shadowTransparent > shadowOpaque));
 }
 
-vec3 get_shading(in vec4 color, in vec3 world) {
+vec4 get_shading(in vec4 color, in vec3 world, in float id) {
 
     mat4 shadowMVP = shadowProjection * shadowModelView;
     vec4 shadowPos  = shadowMVP * vec4(world, 1.0);
@@ -105,38 +105,37 @@ vec3 get_shading(in vec4 color, in vec3 world) {
 
     vec2 lightmap = decode2x16(texture(colortex4, texcoord.st).r);
 
-    vec3 shadows = vec3(0.0);
-    vec3 lighting = vec3(0.0);
+    vec4 shadows = vec4(0.0);
+    vec4 lighting = vec4(0.0);
 
     float NdotL = dot(normal, lightVector);
     float diffuse = max(0.0, NdotL);
 
-    shadows += shadow_map(shadowPos.xyz);
+    if(id == 18.0 || id == 31.0 || id == 37.0 || id == 38.0 || id == 161.0 || id == 175.0) diffuse = 1.0;
+
+    shadows += shadow_map(shadowPos.xyz, id);
 
     vec4 colorDirect = color;
     vec4 colorSky = color;
 
-    #if FastSky == 0
-    int sampleIN = 32;
-    int sampleOUT = 16;
-    #elif FastSky == 1
-    int sampleIN = 12;
-    int sampleOUT = 3;
-    #endif
+    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(12, 2));
+    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(12, 2));
 
-    useAtmosphereDirect(colorDirect, lightVector.xyz, sampleIN, sampleOUT);
-    useAtmosphereAmbient(colorSky, mat3(gbufferModelViewInverse) * upVector, sampleIN, sampleOUT);
+    lighting = (colorDirect * diffuse) * shadows + lighting;
+    lighting.rgb = (blackbody(2800)) * pow(lightmap.x, 3.0) + lighting.rgb;
+    lighting = pow(lightmap.y, 6.5) * colorSky * (vec4(0.93636, 1.5606, 2.40908, 0.0) / 2.0) + lighting;
 
-    lighting = (colorDirect.rgb * diffuse) * shadows + lighting;
-    lighting = (blackbody(2400)) * pow(lightmap.x, 3.5) + lighting;
-    lighting = pow(lightmap.y, 8.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 3.0) + lighting;
+    color = color * lighting;
+    return color;
+}
 
-    color.rgb = color.rgb * lighting;
-    return color.rgb;
+vec3 skyColor() {
+    return vec3(0.0);
 }
 
 void main() {
     color = texture2D(colortex0, texcoord);
+    float id = texture(colortex4, texcoord.st).b * 65535.0;
     float depth = texture2D(depthtex1, texcoord.st).r;
 
     vec4 view = vec4(vec3(texcoord.st, depth) * 2.0 - 1.0, 1.0);
@@ -152,9 +151,6 @@ void main() {
 
     color.rgb = pow(color.rgb, vec3(2.2));
 
-    //if(getLandMask(depth)) color.rgb = get_shading(color.rgb, world.xyz);
-    //if(!getLandMask(depth)) color.rgb = js_getScatter(vec3(0.0), normalize(view.xyz), lightVector, 0);
-
     vec4 colorSky = color;
 
     #if FastSky == 0
@@ -165,9 +161,9 @@ void main() {
     int sampleOUT = 8;
     #endif
 
-    if(getLandMask(depth)) color.rgb = get_shading(color, world.xyz);
+    if(getLandMask(depth)) color = get_shading(color, world.xyz, id);
 
     if(!getLandMask(depth)){
-    atmosphereResult(color, gl_FragCoord.st, normalize(world.xyz), sampleIN, sampleOUT, normalize(view.xyz));
+        atmosphere(color.rgb, world.xyz, sunVector, moonVector, ivec2(32, 2));
     }
 }

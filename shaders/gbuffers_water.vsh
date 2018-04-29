@@ -11,13 +11,16 @@ uniform float rainStrength;
 uniform sampler2D noisetex;
 
 out vec3 vertexNormal;
+out vec3 viewPosition;
+out vec3 worldPosition;
+out mat3 tbn;
 out vec2 textureCoordinate;
 out vec2 lightmapCoordinate;
 out float idData;
 out float isWater;
 
 layout (location = 0) in vec4 inPosition;
-layout (location = 2) in vec3 inNormal;
+layout (location = 2) in vec4 inNormal;
 layout (location = 3) in vec4 inColor;
 
 layout (location = 8) in vec4 inTexCoord;
@@ -33,7 +36,12 @@ void main() {
 	gl_Position = gbufferProjection * (gl_ModelViewMatrix * inPosition);
     idData = mc_Entity.x;
 
-    vertexNormal = normalize(gl_NormalMatrix * inNormal);
+    vertexNormal = normalize(gl_NormalMatrix * inNormal.xyz);
+
+	tbn = mat3(normalize(gl_NormalMatrix * inTangent.xyz), normalize(gl_NormalMatrix * cross(inTangent.xyz, inNormal.xyz) * sign(inTangent.w)), normalize(gl_NormalMatrix * inNormal.xyz));
+
+	viewPosition  = (gl_ModelViewMatrix * inPosition).xyz;
+	worldPosition = (gbufferModelViewInverse * gl_ModelViewMatrix * inPosition).xyz + cameraPosition;
 
     textureCoordinate = inTexCoord.st;
     lightmapCoordinate = inLightmapCoord.st / 240.0;
