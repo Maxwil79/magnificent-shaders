@@ -122,9 +122,13 @@ vec4 get_shading(in vec4 color, in vec3 world, in float id) {
     atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(8, 2));
     atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(8, 2));
 
+    vec4 spiderEyes = texture(colortex5, texcoord.st);
+
     lighting = (colorDirect * diffuse) * shadows + lighting;
     lighting.rgb = (blackbody(2800)) * pow(lightmap.x, 2.0) + lighting.rgb;
     lighting = pow(lightmap.y, 6.5) * (colorSky) * (vec4(0.93636, 1.5606, 2.40908, 0.0) / 3.0) + lighting;
+
+    lighting = spiderEyes + lighting;
 
     color = color * lighting;
     return color;

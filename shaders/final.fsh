@@ -2,6 +2,8 @@
 
 /* DRAWBUFFERS:0 */
 
+layout (location = 0) out vec4 color;
+
 #define getLandMask(x) (x < 1.0)
 
 #define Info //Features: Water volume, volumetric light, water waves, refraction, bloom, average exposure
@@ -39,7 +41,7 @@ void ditherScreen(inout vec3 color) {
 #endif
 
 void main() {
-    vec4 color = texture(colortex0, texcoord);
+    color = texture(colortex0, texcoord);
     float depth = texture(depthtex0, texcoord).r;
 
     color.rgb = BotWToneMap(color.rgb);
@@ -49,6 +51,4 @@ void main() {
     color.rgb = linearToSRGB(color.rgb);
 
     ditherScreen(color.rgb);
-
-    gl_FragData[0] = color;
 }

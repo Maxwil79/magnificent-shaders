@@ -1,5 +1,5 @@
-const vec3 scoeff = vec3(0.0007, 0.005, 0.005) * 0.85;
-const vec3 acoeff = vec3(0.2510, 0.0867, 0.0476) * 1.65;
+const vec3 scoeff = vec3(0.0005, 0.0035, 0.0035);
+const vec3 acoeff = vec3(0.2510, 0.0867, 0.0476) * 2.65;
 
 vec3 waterFog(vec4 color, float dist) {
 
