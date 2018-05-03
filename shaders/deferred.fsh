@@ -109,6 +109,7 @@ vec4 get_shading(in vec4 color, in vec3 world, in float id) {
     vec4 lighting = vec4(0.0);
 
     float NdotL = dot(normal, lightVector);
+    float NdotU = dot(normal, mat3(gbufferModelViewInverse) * upVector);
     float diffuse = max(0.0, NdotL);
 
     if(id == 18.0 || id == 31.0 || id == 37.0 || id == 38.0 || id == 161.0 || id == 175.0) diffuse = 1.0;
@@ -118,12 +119,12 @@ vec4 get_shading(in vec4 color, in vec3 world, in float id) {
     vec4 colorDirect = color;
     vec4 colorSky = color;
 
-    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(12, 2));
-    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(12, 2));
+    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(8, 2));
+    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(8, 2));
 
     lighting = (colorDirect * diffuse) * shadows + lighting;
-    lighting.rgb = (blackbody(2800)) * pow(lightmap.x, 3.0) + lighting.rgb;
-    lighting = pow(lightmap.y, 6.5) * colorSky * (vec4(0.93636, 1.5606, 2.40908, 0.0) / 2.0) + lighting;
+    lighting.rgb = (blackbody(2800)) * pow(lightmap.x, 2.0) + lighting.rgb;
+    lighting = pow(lightmap.y, 6.5) * (colorSky) * (vec4(0.93636, 1.5606, 2.40908, 0.0) / 3.0) + lighting;
 
     color = color * lighting;
     return color;
@@ -153,17 +154,9 @@ void main() {
 
     vec4 colorSky = color;
 
-    #if FastSky == 0
-    int sampleIN = 32;
-    int sampleOUT = 16;
-    #elif FastSky == 1
-    int sampleIN = 16;
-    int sampleOUT = 8;
-    #endif
-
     if(getLandMask(depth)) color = get_shading(color, world.xyz, id);
 
     if(!getLandMask(depth)){
-        atmosphere(color.rgb, world.xyz, sunVector, moonVector, ivec2(32, 2));
+        atmosphere(color.rgb, world.xyz, sunVector, moonVector, ivec2(8, 2));
     }
 }

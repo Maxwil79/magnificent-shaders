@@ -66,13 +66,13 @@ vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world, in vec4 color) 
 
     vec3 directionWorld = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, waterNormal);
 
-    atmosphere(colorSky.rgb, directionWorld, sunVector, moonVector, ivec2(16, 2));
+    atmosphere(colorSky.rgb, directionWorld, sunVector, moonVector, ivec2(8, 2));
 
     float fresnel = better_fresnel(view, waterNormal);
 
     vec3 direction = reflect(viewDirection.xyz, waterNormal);
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 32.0, 16.0)) {
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 8.0, 4.0)) {
         reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnel;
     } else {
     reflection += skyLight * colorSky.rgb * fresnel;

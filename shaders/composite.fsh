@@ -110,12 +110,12 @@ vec3 get_shading(in vec4 color, in vec3 world) {
     vec4 colorDirect = color;
     vec4 colorSky = color;
 
-    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(16, 2));
-    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(6, 2));
+    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(8, 2));
+    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(8, 2));
 
     lighting = (diffuse * colorDirect.rgb) * shadows + lighting;
     lighting = (blackbody(2700)) * pow(lightmap.x, 3.5) + lighting;
-    lighting = pow(lightmap.y, 6.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 2.0) + lighting;
+    lighting = pow(lightmap.y, 6.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 3.0) + lighting;
 
     color.rgb = color.rgb * lighting;
     return color.rgb;

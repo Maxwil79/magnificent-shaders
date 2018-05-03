@@ -4,6 +4,8 @@
 
 //#define VL
 
+#define VolumetricSteps 8 //[1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70]
+
 #define getLandMask(x) (x < 1.0)
 
 /* DRAWBUFFERS:0 */
@@ -106,12 +108,18 @@ float linearizeDepth(float depth) {
     return -1.0 / ((depth * 2.0 - 1.0) * gbufferProjectionInverse[2].w + gbufferProjectionInverse[3].w);
 }
 
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yzx+19.19);
+    return fract((p3.xx+p3.yz)*p3.zy);
+}
+
 vec3 hash33(vec3 p3)
 {
 	p3 = fract(p3 * vec3(443.897, 441.423, 437.195));
     p3 += dot(p3, p3.yxz+19.19);
     return fract((p3.xxy + p3.yxx)*p3.zyx);
-
 }
 
 #include "lib/waterfog.glsl"
@@ -122,6 +130,41 @@ vec3 hash33(vec3 p3)
 #define AirIOR 1.000
 
 #include "lib/waves.glsl"
+
+/*
+vec3 refractionEffect(vec4 view, float waterDepth, vec2 lightmap, float depth, in vec3 normal, in float dither) {
+    vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(texcoord, texture(depthtex0, texcoord).r) * 2.0 - 1.0, 1.0);
+    viewPosition /= viewPosition.w;
+
+    normal = mix(normal, normalize(hash33(view.xyz) * 2.0 - 1.0), 0.07*0.07);
+
+    vec3 start = view.xyz;
+
+    float refractAmount = clamp(waterDepth, 0.0, 1.0);
+    float refractionTexcoord = clamp01(5.0 - abs(texcoord.y * 2.0 - 5.0));
+    if(isEyeInWater == 0) refractAmount *= refractionTexcoord;
+
+    vec4 world = gbufferModelViewInverse * view;
+    world /= world.w;
+
+    vec3 refractionDirection = refract(normalize(view.xyz), normal, AirIOR/WaterIOR);
+
+    view.xyz += refractionDirection * refractAmount;
+
+    view = gbufferProjection * view;
+    view /= view.w;
+
+    if(isEyeInWater == 1) view.xy = view.xy * 0.5 + 0.5;
+
+    vec4 end = gbufferProjectionInverse * vec4(view.xy, texture(depthtex1, view.xy * 0.5 + 0.5).r * 2.0 - 1.0, 1.0);
+    end /= end.w;
+
+    float waterDepthRefracted = linearizeDepth(texture(depthtex0, texcoord).r) - linearizeDepth(texture(depthtex1, view.xy).r);
+
+    if (isEyeInWater == 0) return water_volume(textureLod(colortex0, view.xy * 0.5 + 0.5, 0.0), start, end.xyz, lightmap, world.xyz);
+    if (isEyeInWater == 1) return textureLod(colortex0, view.xy, 0.0).rgb;
+}
+*/
 
 vec3 getRefraction(vec3 clr, vec3 fragpos, in float depth, in float dither) {
 	vec4 worldPos = gbufferModelViewInverse * vec4(fragpos, 1.0);
@@ -137,6 +180,8 @@ vec3 getRefraction(vec3 clr, vec3 fragpos, in float depth, in float dither) {
 		float dY = (h0 - h2) / deltaPos;
 
 		vec3 waterRefract = normalize(vec3(dX, dY, 1.0)) / fragpos.z;
+
+        waterRefract = mix(waterRefract, normalize(hash33(fragpos.xyz) * 2.0 - 1.0), 0.07*0.07);
 
 		waterTexcoord = texcoord.st + waterRefract.xy;
 
@@ -154,7 +199,7 @@ vec3 getRefraction(vec3 clr, vec3 fragpos, in float depth, in float dither) {
 
         vec4 color = texture(colortex0, waterTexcoord.st);
         if(isEyeInWater == 0) {
-        watercolor = waterFogVolumetric(color, view.xyz, end.xyz, decode2x16(texture(colortex4, texcoord.st).r), world.xyz);
+        watercolor = water_volume(color, view.xyz, end.xyz, decode2x16(texture(colortex4, texcoord.st).r), world.xyz);
         } else {
         watercolor = color.rgb;
         }
@@ -182,11 +227,12 @@ void main() {
     end /= end.w;
 
     #ifndef Refraction
-    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color.rgb = waterFogVolumetric(color, view.xyz, end.xyz, decode2x16(texture(colortex4, texcoord.st).r).xy, world.xyz);
+    if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color.rgb = water_volume(color, view.xyz, end.xyz, decode2x16(texture(colortex4, texcoord.st).r).xy, world.xyz);
     #else
+    //if(id == 8.0 || id == 9.0) color.rgb = refractionEffect(view, waterDepth, decode2x16(texture(colortex4, texcoord.st).r).xy, depth, unpackNormal(texture(colortex1, texcoord.st).rg), 1.0);
     if(id == 8.0 || id == 9.0) color.rgb = getRefraction(vec3(0.0), view.xyz, depth, bayer32(gl_FragCoord.st));
     #endif
-    if(isEyeInWater == 1) color.rgb = waterFogVolumetric(color, vec3(0.0), view.xyz, decode2x16(texture(colortex4, texcoord.st).r).xy, world.xyz);
+    if(isEyeInWater == 1) color.rgb = water_volume(color, vec3(0.0), view.xyz, decode2x16(texture(colortex4, texcoord.st).r).xy, world.xyz);
 
     if(id == 8.0 || id == 9.0 && isEyeInWater == 0) color.rgb += reflection(normalize(view.xyz), vec3(0.0), world.xyz, color);
 

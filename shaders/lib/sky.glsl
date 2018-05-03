@@ -17,9 +17,9 @@ vec3 atmosphere(vec3 r, vec3 r0, vec3 pSun, float iSun, float rPlanet, float rAt
     pMoon = normalize(pMoon);
     r = normalize(r);
 
-    vec3 sunColor = iSun * blackbody(5300);
+    vec3 sunColor = iSun * blackbody(5778);
     float iMoon = moonIlluminance;
-    vec3 moonColor = iMoon * blackbody(5300);
+    vec3 moonColor = iMoon * blackbody(5778);
 
     vec2 p = rsi(r0, r, rAtmos);
     if (p.x > p.y) return vec3(0,0,0);
@@ -45,7 +45,7 @@ vec3 atmosphere(vec3 r, vec3 r0, vec3 pSun, float iSun, float rPlanet, float rAt
     float gg = g * g;
     float pRlh = 3.0 / (16.0 * PI) * (1.0 + mumu);
     float pOzo = 3.0 / (16.0 * PI) * (1.0 - ozoMuMu);
-    float pMie = 3.0 / (8.0 * PI) * ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg));
+    float pMie = clamp(3.0 / (8.0 * PI) * ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg)), 0.0, 10.0) * 4.0;
 
     for (int i = 0; i < iSteps; i++) {
 
