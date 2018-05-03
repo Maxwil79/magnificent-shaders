@@ -1,15 +1,14 @@
 Composite Programs
 
-Composite0 = Shading, sky and applying transparents.
-Composite1 = Reflections, VL, and waterfog.
-Composite2 = Temporal VL.
+Composite0 = Applying transparents
+Composite1 = Reflections, VL, and the water volume.
 Composite4 = Bloom, exposure, and difraction spikes.
 Composite5 = Apply bloom.
 Final = Tonemap, dither, saturation, and linear to SRGB conversion.
 
 Deferred Programs (Composite programs that are done before gbuffers_water)
 
-Deferred0 = Shading, sky and applying transparents.
+Deferred0 = Shading and sky
 
 Gbuffers programs
 
