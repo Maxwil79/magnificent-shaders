@@ -1,5 +1,7 @@
 #version 400
 
+int stepCountAMB = 16;
+
 #define getLandMask(x) (x < 1.0)
 
 /* DRAWBUFFERS:0 */
@@ -12,10 +14,13 @@ const int colortex2Format = RGBA16F;
 
 in vec2 texcoord;
 
+in vec3 lightVector2;
 in vec3 sunVector;
 in vec3 sunVector2;
 in vec3 moonVector;
 in vec3 lightVector;
+in vec3 sunLight;
+in vec3 skyLight;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
@@ -39,6 +44,7 @@ uniform vec3 cameraPosition;
 uniform vec3 sunPosition;
 
 uniform float sunAngle;
+uniform float rainStrength;
 uniform float viewWidth, viewHeight;
 uniform float frameTimeCounter;
 
@@ -56,8 +62,20 @@ mat4 newShadowModelView = mat4(
 
 vec3 upVector = gbufferModelView[1].xyz;
 
+float bayer2(vec2 a){
+    a = floor(a);
+    return fract( dot(a, vec2(.5, a.y * .75)) );
+}
+#define bayer4(a)   (bayer2( .5*(a))*.25+bayer2(a))
+#define bayer8(a)   (bayer4( .5*(a))*.25+bayer2(a))
+#define bayer16(a)  (bayer8( .5*(a))*.25+bayer2(a))
+#define bayer32(a)  (bayer16(.5*(a))*.25+bayer2(a))
+#define bayer64(a)  (bayer32(.5*(a))*.25+bayer2(a))
+#define bayer128(a) (bayer64(.5*(a))*.25+bayer2(a))
+
 #include "lib/util.glsl"
 
+#include "lib/encoding/encode.glsl"
 #include "lib/encoding/decode.glsl"
 
 #include "lib/blackbody.glsl"
@@ -66,56 +84,58 @@ vec3 upVector = gbufferModelView[1].xyz;
 #include "lib/distortion.glsl"
 
 float shadow_opaque(in vec3 pos, in float distort) {
-    return float(texture(shadowtex0, pos.st).r > pos.p - 0.00025 / distort);
+    return float(texture(shadowtex0, pos.st).r > pos.p - 0.008 / distort);
 }
 
 float shadow_transparent(in vec3 pos, in float distort) {
-    return float(texture(shadowtex1, pos.st).r > pos.p - 0.00025 / distort);
+    return float(texture(shadowtex1, pos.st).r > pos.p - 0.008 / distort);
 }
 
-vec3 shadow_color(in vec3 pos) {
-    return texture(shadowcolor0, pos.st).rgb;
+vec4 shadow_color(in vec3 pos) {
+    return texture(shadowcolor0, pos.st);
 }
 
-vec3 shadow_map(in vec3 pos) {
-    float distortionFactor = 1.0 / ShadowDistortion(pos.st);
-    float shadowOpaque = shadow_opaque(pos, distortionFactor*distortionFactor);
+vec4 shadow_map(in vec3 pos, in float distortionFactor) {
     float shadowTransparent = shadow_transparent(pos, distortionFactor*distortionFactor);
-    vec3 shadowColor = shadow_color(pos);
-    return mix(vec3(shadowOpaque), shadowColor, float(shadowTransparent > shadowOpaque));
+    return vec4(shadowTransparent);
 }
 
-vec3 get_shading(in vec4 color, in vec3 world) {
+vec3 get_shading(in vec4 color, in vec3 world, out vec3 shadowResult) {
 
     mat4 shadowMVP = shadowProjection * shadowModelView;
     vec4 shadowPos  = shadowMVP * vec4(world, 1.0);
 
+    float distortionFactor = 1.0 / ShadowDistortion(shadowPos.st);
+
     shadowPos.xy /= ShadowDistortion(shadowPos.st);
-    shadowPos.z /= 6.0;
+    shadowPos.z /= 4.0;
 
     shadowPos = shadowPos * 0.5 + 0.5;
 
-    vec3 normal = unpackNormal(texture(colortex1, texcoord.st).rg);
+    vec3 normal = unpackNormal(texture(colortex5, texcoord.st).gb);
 
     vec2 lightmap = decode2x16(texture(colortex4, texcoord.st).r);
+    lightmap *= lightmap;
 
     vec3 shadows = vec3(0.0);
     vec3 lighting = vec3(0.0);
 
-    float NdotL = dot(normal, sunVector2);
+    float NdotL = dot(normal, lightVector2);
+    float NdotU = dot(normal, mat3(gbufferModelViewInverse) * upVector);
     float diffuse = max(0.0, NdotL);
 
-    shadows += shadow_map(shadowPos.xyz);
+    shadows += shadow_map(shadowPos.xyz, distortionFactor).rgb;
 
-    vec4 colorDirect = color;
-    vec4 colorSky = color;
+    vec3 scatterCol = vec3(0.0);
 
-    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(8, 2));
-    atmosphere(colorSky.rgb, mat3(gbufferModelViewInverse) * upVector, sunVector, moonVector, ivec2(8, 2));
+    vec4 colorDirect = vec4(sunLight, 1.0);
+    vec4 colorSky = vec4(skyLight, 1.0);
 
     lighting = (diffuse * colorDirect.rgb) * shadows + lighting;
-    lighting = (blackbody(2700)) * pow(lightmap.x, 3.5) + lighting;
-    lighting = pow(lightmap.y, 6.5) * colorSky.rgb * (vec3(2.3409, 3.9015, 6.0227) / 3.0) + lighting;
+    lighting = (blackbody(2200)) * pow(lightmap.x, 2.5) + lighting;
+    lighting = pow(lightmap.y, 4.0) * colorSky.rgb + lighting;
+
+    shadowResult = shadows;
 
     color.rgb = color.rgb * lighting;
     return color.rgb;
@@ -135,5 +155,8 @@ void main() {
     vec4 world = gbufferModelViewInverse * view2;
     world /= world.w;
 
-    color.rgb = mix(color.rgb, get_shading(transparents, world.xyz), transparents.a);
+    vec3 shadowResult = vec3(0.0);
+
+    color.rgb = mix(color.rgb, get_shading(transparents, world.xyz, shadowResult), transparents.a);
+    color.a = encode3x16(shadowResult);
 }

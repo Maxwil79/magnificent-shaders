@@ -1,10 +1,10 @@
 #version 400
 
-/* DRAWBUFFERS:041 */
+/* DRAWBUFFERS:045 */
 
 layout (location = 0) out vec4 color;
 layout (location = 1) out vec4 packedData;
-layout (location = 2) out vec4 packedNormal;
+layout (location = 2) out vec4 packedSpecNormal;
 
 in float idData;
 
@@ -27,12 +27,16 @@ uniform mat4 gbufferProjectionInverse, gbufferModelViewInverse;
 
 #include "lib/encoding/encode.glsl"
 
+#define Continuum_2
+
 void main() {
     color = texture(tex, textureCoordinate.st) * tint;
     vec3 normalMap = texture(normals, textureCoordinate.st).rgb;
     normalMap = normalMap * 2.0 - 1.0;
     normalMap = normalize(tbn * normalMap);
 
-    packedNormal = vec4(packNormal(normalMap), 1.0, 1.0);
+    vec4 specularMap = texture(specular, textureCoordinate.st);
+
+    packedSpecNormal = vec4(encode4x16(specularMap), packNormal(normalMap), 1.0);
     packedData = vec4(encode2x16(lightmapCoordinate), encodeNormal3x16(mat3(gbufferModelViewInverse) * normalMap), floor(idData + 0.5) / 65535.0, 1.0);
 }

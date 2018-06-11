@@ -1,42 +1,49 @@
-bool raytraceIntersection(
-	vec3 start,
-	vec3 direction,
-	out vec3 position,
-	const float quality,
-	const float refinements
-) {
-	position   = start;
+#include "raytrace.glsl"
 
-	start = screenSpaceToViewSpace(start, gbufferProjectionInverse);
+bool getRaytraceIntersection(vec3 pos, vec3 vec, out vec3 screenSpace, out vec3 viewSpace) {
+	const float maxSteps  = 32;
+	const float maxRefs   = 2;
+	const float stepSize  = 0.5;
+	const float stepScale = 1.6;
+	const float refScale  = 0.1;
 
-	direction *= -start.z;
-	direction  = viewSpaceToScreenSpace(direction + start, gbufferProjection) - position;
+	vec3 increment = vec * stepSize;
 
-	float qualityRCP = 1.0 / quality;
+	viewSpace = pos;
 
-	vec3 increment = direction * minof((step(0.0, direction) - position) / direction) * qualityRCP;
+	uint refinements = 0;
+	for (uint i = 0; i < maxSteps; i++) {
+		viewSpace  += increment;
+		screenSpace = viewSpaceToScreenSpace(viewSpace, gbufferProjection);
 
-	float difference;
-	bool  intersected = false;
+		if (any(greaterThan(abs(screenSpace - 0.5), vec3(0.5)))) return false;
 
-	for (float i = 0.0; i <= quality && !intersected && position.p < 1.0; i++) {
-		position   += increment;
-		if (floor(position.st) != vec2(0.0)) break;
-		difference  = texture(depthtex2, position.st).r - position.p;
-		intersected = difference < 0.0;
-	}
+		float screenZ = texture(depthtex1, screenSpace.xy).r;
+		float diff    = viewSpace.z - linearizeDepth(screenZ);
 
-	intersected = intersected && (difference + position.p) < 1.0 && position.p > 0.0;
+		if (diff <= 0.0) {
+			// Do refinements
 
-	if (intersected && refinements > 0.0) {
-		for (float i = 0.0; i < refinements; i++) {
-			increment *= 0.5;
-			position  += texture(depthtex1, position.st).r - position.p < 0.0 ? -increment : increment;
+			if (refinements < maxRefs) {
+				viewSpace -= increment;
+				increment *= refScale;
+				refinements++;
+
+				continue;
+			}
+
+			// Refinements are done, so make sure we ended up reasonably close
+			if (any(greaterThan(abs(screenSpace - 0.5), vec3(0.5))) || length(increment) * 10 < -diff || screenZ == 1.0) return false;
+
+			return true;
 		}
+
+		increment *= stepScale;
 	}
 
-	return intersected;
+	return false;
 }
+
 
 float better_fresnel(in vec3 viewVector, in vec3 normal) {
     //The code in this function was shared by stduhpf.
@@ -51,32 +58,110 @@ float better_fresnel(in vec3 viewVector, in vec3 normal) {
     return fresnel;
 }
 
-vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world, in vec4 color) {
+float d_GGX(vec3 normal, vec3 halfway, float roughness) {
+	float alpha = roughness;
+	return pow(alpha, 2.0) / (pi * pow(pow(dot(normal, halfway), 2.0) * (pow(alpha, 2.0) - 1.0) + 1.0, 2.0));
+}
+
+float f0ToIOR(float f0) {
+	f0 = sqrt(f0);
+	f0 *= 0.99999; // Prevents divide by 0
+	return (1.0 + f0) / (1.0 - f0);
+}
+
+float f_dielectric(float cosTheta, float eta) {
+	float p = 1.0 - (eta * eta * (1.0 - cosTheta * cosTheta));
+	if (p <= 0.0) return 1.0; p = sqrt(p);
+
+	vec2 r = vec2(cosTheta, p);
+	r = (eta * r - r.yx) / (eta * r + r.yx);
+	return dot(r, r) * 0.5;
+}
+
+float g_smithGGXCorrelated(vec3 view, vec3 normal, vec3 light, float roughness) {
+	float alpha = roughness;
+
+	float viewG  = (-1.0 + sqrt(pow(alpha, 2.0) * (1.0 - pow(dot(normal, view ), 2.0)) / pow(dot(normal, view ), 2.0) + 1.0)) * 0.5;
+	float lightG = (-1.0 + sqrt(pow(alpha, 2.0) * (1.0 - pow(dot(normal, light), 2.0)) / pow(dot(normal, light), 2.0) + 1.0)) * 0.5;
+	return 1.0 / (1.0 + viewG + lightG);
+}
+
+float specularBRDF(vec3 view, vec3 normal, vec3 light, float reflectance, float roughness) {
+	vec3 halfway = normalize(view + light);
+
+	float eta = 1.0 / f0ToIOR(reflectance);
+	float F = f_dielectric(dot(view, halfway), eta);
+
+	float G = g_smithGGXCorrelated(view, normal, light, roughness);
+
+	float D = d_GGX(normal, halfway, roughness);
+
+	float numerator   = F * G * D;
+	float denominator = 4.0 * dot(view, normal) * dot(normal, light);
+
+	return max(numerator / denominator, 0.0);
+}
+
+#define Continuum_2 //Disable this for the format used in SEUS v11.
+
+vec3 clampNormal(vec3 n, vec3 v){
+    return dot(n, v) >= 0.0 ? cross(cross(v, n), v) : n;
+}
+
+vec3 reflection(in vec3 view, in vec3 viewVector, in vec3 world) {
     vec3 reflection = vec3(0.0);
     int i = 0;
-    vec4 viewPosition = gbufferProjectionInverse * vec4(vec3(texcoord, texture(depthtex0, texcoord).r) * 2.0 - 1.0, 1.0);
-    viewPosition /= viewPosition.w;
-    vec3 viewDirection = normalize(viewPosition.xyz);
+    float id = texture(colortex4, texcoord.st).b * 65535.0;
     vec3 viewVec3 = vec3(texcoord, texture(depthtex0, texcoord).r);
+    vec4 viewPosition = gbufferProjectionInverse * vec4(viewVec3 * 2.0 - 1.0, 1.0);
+    viewPosition /= viewPosition.w;
+	vec3 viewDirection = normalize(viewPosition.xyz);
     vec3 shadows = decode3x16(texture(colortex0, texcoord.st).a);
-    float skyLight = pow(decode2x16(texture(colortex4, texcoord.st).r).y, 7.0);
-    vec3 waterNormal = unpackNormal(texture(colortex1, texcoord.st).rg);
+    float skyLightMap = pow(decode2x16(texture(colortex4, texcoord.st).r).y, 5.0);
+	skyLightMap *= skyLightMap;
+    vec3 normal = unpackNormal(texture(colortex5, texcoord.st).gb);
+    vec3 directionWorld = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, normal);
+	vec4 specMap = decode4x16(texture(colortex5, texcoord.st).r);
+	#ifdef Continuum_2
+	float reflectance = specMap.r * 0.1;
+	float roughness = pow(1.0 - specMap.b, 2.0);
+	#else
+	bool isMetal       = (id == 41 || id == 42 || id == 101 || id == 152) && specMap.r > 0.0; // For formats without metalness maps
 
-    vec4 colorSky = color;
+	float reflectance = isMetal ? 1.0 : pow(specMap.r, 3.0);
+	float roughness = (-0.1 * specMap.b + 0.1) / specMap.b + 0.1;
+	#endif
+	float F = 0.0;
 
-    vec3 directionWorld = mat3(gbufferModelViewInverse) * reflect(viewDirection.xyz, waterNormal);
+    vec3 scatterCol = vec3(0.0);
 
-    atmosphere(colorSky.rgb, directionWorld, sunVector, moonVector, ivec2(8, 2));
+    vec3 colorSky = atmos(directionWorld, scatterCol, vec3(0.0), 2);
 
-    float fresnel = better_fresnel(view, waterNormal);
+    vec3 waterNormal = normalize(mix(normal, normalize(hash33((1.0 * frameTimeCounter) * view.xyz) * 2.0 - 1.0), roughness));
+	if (dot(waterNormal, -viewDirection.xyz) < 0.0) return vec3(0.0);
 
     vec3 direction = reflect(viewDirection.xyz, waterNormal);
+
+	float schlick = (1.0 - reflectance) * pow(1.0 - clamp(dot(-normalize(viewPosition.xyz), waterNormal), 0.0, 1.0), 5.0) + reflectance;
+
+	vec3 halfway = normalize(view + lightVector2);
+
+	float eta = 1.0 / f0ToIOR(reflectance);
+	F = f_dielectric(dot(waterNormal, direction), eta);
+
+    float fresnel = schlick;
+
     vec4 hitPosition;
-    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 8.0, 4.0)) {
-        reflection += textureLod(colortex0, hitPosition.xy, 0).rgb * fresnel;
+    if (raytraceIntersection(viewVec3, direction, hitPosition.xyz, 16.0, 4.0)) {
+        reflection += textureLod(colortex0, hitPosition.xy, 0).rgb;
     } else {
-    reflection += skyLight * colorSky.rgb * fresnel;
+        reflection += skyLightMap * colorSky.rgb;
     }
+
+    reflection *= F;
+
+	reflection += ((sunLight*(sunIlluminance*0.1)) * min(specularBRDF(-viewDirection, normal, sunVector2, reflectance/sunIlluminance, roughness), pi) * shadows) * (1.0 - rainStrength);
+	reflection += ((moonColor) * min(specularBRDF(-viewDirection, normal, moonVector2, reflectance, roughness), pi) * shadows) * (1.0 - rainStrength);
 
     reflection += vec3(0.0);
     

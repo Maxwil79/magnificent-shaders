@@ -1,6 +1,15 @@
 #define saturate(x) clamp(x, 0.0, 1.0)
 
+#define mul(x, y) x * y
+
 #define rcp(x) ( 1.0 / x )
+
+#define fstep(a, b) clamp(((b)-(a))*1e35, 0., 1.)
+
+#define signed(a) ((a * 2.0) - 1.0)
+#define unsigned(a) ((a * 0.5) + 0.5)
+
+#define cubicSmooth(x) (x * x) * (3.0 - 2.0 * x)
 
 vec3 screenSpaceToViewSpace(vec3 position, mat4 projectionInverse) {
 	position = position * 2.0 - 1.0;

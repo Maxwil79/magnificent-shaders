@@ -27,3 +27,15 @@ float encode3x16(vec3 a){
     ivec3 b = ivec3(a*m);
     return float( b.r|(b.g<<5)|(b.b<<11) ) / 65535.;
 }
+
+#define color_bits vec4(6)
+#define color_values exp2(color_bits)
+#define color_rvalues (1.0 / color_values)
+#define color_maxValues (color_values - 1.0)
+#define color_rmaxValues (1.0 / color_maxValues)
+#define color_positions vec4(1.0, color_values.x, color_values.x * color_values.y, color_values.x * color_values.y * color_values.z)
+#define color_rpositions (16777215.0 / color_positions)
+
+float encode4x16(vec4 a) {
+    return dot(floor(clamp01(a) * color_maxValues + 0.5), color_positions / 16777215.0);
+}

@@ -1,10 +1,7 @@
 Colortex0 = color (Almost all files)
-Colortex1 = Water normals (Gbuffers_water to Composite2)
 colortex2 = transparent color (Gbuffers_water to composite0)
 Colortex3 = Temporal VL (Composite2 to composite3)
 Colortex4 = Encoded lightmaps, ID, encoded vertex normals (Gbuffer files to Composite3)
 Colortex4 = Bloom (Composite4 to Composite5)
+Colortex5 = Specular
 Colortex7 = Smooth exposure (Composite4 to Composite 5, never used in any other files)
-
-#Image buffers
-Colortex6 = Diffraction spikes.

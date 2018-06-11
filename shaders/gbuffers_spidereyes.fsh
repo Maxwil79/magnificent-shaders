@@ -1,25 +1,27 @@
 #version 400
 
-/* DRAWBUFFERS:54 */
+//This file should probably be done a different way, but this works for now.
 
-layout (location = 0) out vec4 colorOut;
+/* DRAWBUFFERS:041 */
+
+layout (location = 0) out vec4 color;
 layout (location = 1) out vec4 packedData;
 
-in vec4 color;
-in vec2 uvcoord;
-in vec2 lmcoord;
-in vec3 normal;
-in vec4 metadata;
+in vec2 textureCoordinate;
+in vec2 lightmapCoordinate;
 
 uniform sampler2D tex;
-uniform sampler2D lightmap;
-uniform sampler2D specular;
 
 uniform mat4 gbufferProjectionInverse, gbufferModelViewInverse;
 
 #include "lib/encoding/encode.glsl"
 
+float spiderEnderEyes = 0.0;
+
 void main() {
-    colorOut = texture(tex, uvcoord);
-    packedData = vec4(encode2x16(lmcoord), encodeNormal3x16(mat3(gbufferModelViewInverse) * normal), floor(metadata.x + 0.5) / 65535.0, 1.0);
+    color = texture(tex, textureCoordinate.st);
+
+    spiderEnderEyes = 1.0;
+
+    packedData = vec4(encode2x16(lightmapCoordinate), spiderEnderEyes, 1.0, 1.0);
 }

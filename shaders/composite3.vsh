@@ -1,7 +1,6 @@
 #version 400
 
-layout (location = 0) in vec2 inPosition;
-layout (location = 8) in vec2 inTexCoord;
+layout (location = 0) in vec4 inPosition;
 
 out vec2 texcoord;
 
@@ -10,7 +9,7 @@ out vec2 texcoord;
 #define unsigned(a) ((a * 0.5) + 0.5)
 
 void main() {
-    gl_Position = vec4(inPosition.xy * 2.0 - 1.0, 0.0, 1.0);
+    gl_Position = inPosition * 2.0 - 1.0;
 
-    texcoord = inTexCoord.xy;
+    texcoord = inPosition.xy;
 }

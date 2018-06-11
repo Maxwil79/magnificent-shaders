@@ -13,6 +13,10 @@ in vec2 texcoord;
 uniform sampler2D colortex0;
 uniform sampler2D depthtex0;
 
+uniform mat4 gbufferProjection;
+
+const float pi  = 3.14159265358979;
+
 #include "lib/util.glsl"
 
 //This belongs to Jodie
@@ -35,18 +39,11 @@ void ditherScreen(inout vec3 color) {
 
 #include "lib/tonemaps.glsl"
 
-#include "lib/postProcessPasses.glsl"
-
-#ifdef Info
-#endif
-
 void main() {
     color = texture(colortex0, texcoord);
     float depth = texture(depthtex0, texcoord).r;
 
-    color.rgb = BotWToneMap(color.rgb);
-
-    color.rgb = FilmPass(color.rgb);
+    color.rgb = jodieRoboTonemap(color.rgb);
 
     color.rgb = linearToSRGB(color.rgb);
 

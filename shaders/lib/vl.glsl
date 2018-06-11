@@ -2,51 +2,38 @@
 #define VolumeDistance far*VolumeDistanceMultiplier
 #define VlMode 0 //[0 1] Changes the coefficients and intensity of VL.
 
-#if VlMode == 0
-const vec3 rayleighScatteringCoefficient = vec3(5.5e-6, 13.0e-6, 22.4e-6);
-const vec3      mieScatteringCoefficient = vec3(2.1e-5); //Good default
-float intensity = 4e0;
-#elif VlMode == 1
-const vec3 rayleighScatteringCoefficient = vec3(9.8e-6  , 1.35e-5 , 1.31e-5 );
-const vec3      mieScatteringCoefficient = vec3(2.1e-5); //Good default
-float intensity = 1.5e1;
-#endif
+const vec3 rayleighScatteringCoefficient = vec3(4.593e-6, 1.097e-5, 2.716e-5) * 1e2;
+const vec3      mieScatteringCoefficient = vec3(3e-4); //Good default
 
 const vec3 rayleighTransmittanceCoefficient = rayleighScatteringCoefficient;
 const vec3      mieTransmittanceCoefficient =      mieScatteringCoefficient * 1.11;
 
-float groundFog(vec3 worldPos) {
-	worldPos.y -= 8e3;
-	float density = 1.0;
-	density *= exp(-worldPos.y / 8e3);
-    density = clamp(density, 0.0, 85.2);
-	return density;
-}
-
 vec3 calculateVolumetricLight(vec3 color, vec3 start, vec3 end, vec2 lightmap, vec3 world, in float intensity) {  
-    const vec3 attenCoeff = rayleighTransmittanceCoefficient + mieTransmittanceCoefficient;
+    const vec3 attenCoeff = (rayleighTransmittanceCoefficient + mieTransmittanceCoefficient);
 
-    vec4 lightColor = vec4(0.0);
+    vec3 scatterCol = vec3(0.0);
 
-    vec4 colorDirect = lightColor;
+    vec3 colorDirect = sunLight;
+    vec3 colorSky = skyLight;
 
-    atmosphere(colorDirect.rgb, lightVector.xyz, sunVector, moonVector, ivec2(8, 2));
+    lightmap = vec2(eyeBrightnessSmooth) / 240.0;
 
-    lightColor.rgb = colorDirect.rgb;
-    vec3 skyLightColor = vec3(0.0);
+    vec3 lightColor = vec3(0.0);
+    lightColor = colorDirect.rgb;
+    vec3 skyLightColor = colorSky.rgb * (vec3(0.93636, 1.1606, 1.40908)) * lightmap.y;
 
 	vec3 rayVec  = end - start;
 	     rayVec /= VolumetricSteps;
 	float stepSize = length(rayVec);
 
-    float vlG = 0.75;
+    float vlG = 0.99;
 
 	float VoL   = dot(normalize(end - start), lightVector2);
     float VolVol = VoL * VoL;
-	float rayleigh = phaseFunctionRayleigh(VoL);
+	float rayleigh = rayleighPhase(VoL);
     float gg = vlG * vlG;
-    float mie = clamp(3.0 / (8.0 * PI) * ((1.0 - gg) * (VolVol + 1.0)) / (pow(1.0 + gg - 2.0 * VoL * vlG, 1.5) * (2.0 + gg)), 0.0, 10.0) * 4.0;
-    float phase = rayleigh + mie;
+    float mie = miePhase(VoL, vlG);
+    vec2 phase = vec2(rayleigh, mie);
 
     vec3 scoeff = (rayleighScatteringCoefficient * rayleigh) + (mieScatteringCoefficient * mie);
 
@@ -54,7 +41,7 @@ vec3 calculateVolumetricLight(vec3 color, vec3 start, vec3 end, vec2 lightmap, v
 	vec3 scattered  = vec3(0.0) * transmittance;
 
     vec3 increment = (end - start) / VolumetricSteps;
-    start -= increment * bayer128(gl_FragCoord.st);
+    start -= increment * dither2;
 
     mat4 shadowMatrix = shadowProjection * shadowModelView * gbufferModelViewInverse;
 
@@ -63,25 +50,25 @@ vec3 calculateVolumetricLight(vec3 color, vec3 start, vec3 end, vec2 lightmap, v
     increment = mat3(shadowMatrix) * increment;
     vec4 curPos = vec4(start, 1.0);
     float lengthOfIncrement = length(increment);
-    vec3 sunlightConribution = lightColor.rgb * phase;
-    vec3 skylightContribution = skyLightColor;
-    for (int i = 0; i < VolumetricSteps; i++) {
+    vec3 sunlightConribution = lightColor.rgb;
+    vec3 skylightContribution = vec3(0.0);
+    for (int i = 0; i < VolumetricSteps; ++i) {
         curPos.xyz += increment;
-
-        float gf = groundFog((mat3(shadowModelViewInverse) * (mat3(shadowProjectionInverse) * curPos.xyz + shadowProjectionInverse[3].xyz) + shadowModelViewInverse[3].xyz) + cameraPosition);
-
-        vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 6.0) * 0.5 + 0.5;
+        float gf = groundFog((mat3(shadowModelViewInverse) * (mat3(shadowProjectionInverse) * curPos.xyz + shadowProjectionInverse[3].xyz) + shadowModelViewInverse[3].xyz) + cameraPosition, 76.0, 10.0);
+        vec3 shadowPos = curPos.xyz / vec3(vec2(ShadowDistortion(curPos.xy)), 4.0) * 0.5 + 0.5;
         vec3 shadowColor = texture(shadowcolor0, shadowPos.st).rgb;
     	float shadowOpaque      = float(textureLod(shadowtex0,   shadowPos.st,    0).r > shadowPos.p - 0.000003);
 	    float shadowTransparent = float(textureLod(shadowtex1,   shadowPos.st, 0).r > shadowPos.p - 0.000003);
 
 	    vec3 shadow = mix(vec3(shadowOpaque), shadowColor, float(shadowTransparent > shadowOpaque));
-	        shadow *= sunlightConribution;
+	    shadow *= sunlightConribution;
+        shadow *= clamp(gf, 0.0, 0.1);
 
-        scattered += ((shadow + skylightContribution) * transmittance) * gf;
+        scattered += ((shadow + skylightContribution) * transmittance);
         transmittance *= exp(-(attenCoeff) * (stepSize));
     } scattered *= scoeff;
     scattered *= (1.0 - exp(-(attenCoeff) * (stepSize))) / (attenCoeff);
+    scattered *= 2e2;
 
-    return color * transmittance + (scattered * intensity);
+    return color * transmittance + scattered;
 }

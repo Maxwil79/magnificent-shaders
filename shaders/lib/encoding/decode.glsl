@@ -38,3 +38,15 @@ vec3 unpackNormal(vec2 encodedNormal) {
 	float f = dot(encodedNormal, encodedNormal);
 	return vec3(encodedNormal * sqrt(clamp(f * -0.25 + 1.0, 0.0, 1.0)), f * -0.5 + 1.0); // clamped because float inaccuracy sometimes causes negative values to be passed into the sqrt, resulting in non-numerical values.
 }
+
+#define color_bits vec4(6)
+#define color_values exp2(color_bits)
+#define color_rvalues (1.0 / color_values)
+#define color_maxValues (color_values - 1.0)
+#define color_rmaxValues (1.0 / color_maxValues)
+#define color_positions vec4(1.0, color_values.x, color_values.x * color_values.y, color_values.x * color_values.y * color_values.z)
+#define color_rpositions (16777215.0 / color_positions)
+
+vec4 decode4x16(float a){
+    return mod(a * color_rpositions, color_values) * color_rmaxValues;
+}

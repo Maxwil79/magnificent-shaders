@@ -1,6 +1,6 @@
 // Code originally from https://www.shadertoy.com/view/XsjyWz
 
-#define FastSky 1 //[0 1] When disbled, this drasticly lowers FPS. I recommend keeping this Enabled.
+#define FastSky 0 //[0 1] When disbled, this drasticly lowers FPS. I recommend keeping this Enabled.
 
 #define MIN_WL 380.0
 #define WL_STEP 5.0
@@ -188,7 +188,11 @@ vec4 betaM(in vec4 wl)
     return vec4(2.913e-4) / (wl * wl);
 }
 
-void atmosphereResult (inout vec4 color, in vec2 coord, in vec3 view, in int samples1, in int samples2, in vec3 sunView) 
+vec3 ozoneAbsorption(){
+    return vec3(0.0);
+}
+
+void atmosphereResult (inout vec4 color, in vec2 coord, in vec3 view, in int samples1, in int samples2) 
 {
     float u = coord.x / screenRes.x;
     float v = coord.y / screenRes.y;
@@ -222,7 +226,7 @@ void atmosphereResult (inout vec4 color, in vec2 coord, in vec3 view, in int sam
 	vec3 xyz = vec3(0.0);
     for (int i = 0; i < 4; ++i)
     {
-        vec4 wl = w[i] + vec4(3.426, 8.298, .356, 0.0);
+        vec4 wl = w[i];
         vec4 radiation = black_body_radiation(5778.0, wl);
 		vec4 s = radiation * in_scattering(target, sun, moon, phase, betaR(wl), betaM(wl), positionOnPlanet(cameraPosition.y), samples1, samples2);
         xyz += s.x * spectrum_to_xyz(wl.x);
@@ -233,14 +237,15 @@ void atmosphereResult (inout vec4 color, in vec2 coord, in vec3 view, in int sam
 #endif
 
     vec3 result = xyz_to_rgb(xyz);
+    //result += ozoneAbsorption();
 
     color = vec4(result * exposure, 1.0);
 }
 
 void useAtmosphereAmbient(inout vec4 color, in vec3 upVec, in int samples1, in int samples2){
-    atmosphereResult(color, gl_FragCoord.st, upVec, samples1, samples2, vec3(0.0));
+    atmosphereResult(color, gl_FragCoord.st, upVec, samples1, samples2);
 }
 
 void useAtmosphereDirect(inout vec4 color, in vec3 lightVec, in int samples1, in int samples2){
-    atmosphereResult(color, gl_FragCoord.st, lightVec, samples1, samples2, vec3(0.0));
+    atmosphereResult(color, gl_FragCoord.st, lightVec, samples1, samples2);
 }

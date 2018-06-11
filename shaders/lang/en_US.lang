@@ -5,3 +5,25 @@ value.VlMode.0=Earth like
 value.VlMode.1=Alien Planet
 
 option.VL=Volumetric Lighting
+
+value.Refraction.0=None
+value.Refraction.1=Fake Refraction
+value.Refraction.2=Raytraced Refraction
+
+option.SSR_Steps=SSR Steps
+
+option.AO=Ambient Occlusion Method
+
+value.AO.0=None
+value.AO.1=SSAO
+value.AO.2=RTSSAO
+
+option.AORaytraceQuality=AO Raytrace Quality
+option.SSAO_Samples=SSAO Samples
+option.SSRTAO_Samples=RTAO Samples
+
+value.BlocklightColor.0=Torch
+value.BlocklightColor.1=Modern
+value.BlocklightColor.2=Sea Lantern
+value.BlocklightColor.3=End
+value.BlocklightColor.4=Red
